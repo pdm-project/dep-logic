@@ -1,0 +1,34 @@
+name: Tests
+
+on:
+  pull_request:
+    paths-ignore:
+      - "*.md"
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "*.md"
+
+jobs:
+  Testing:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up PDM
+        uses: pdm-project/setup-pdm@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: ${{ matrix.arch }}
+          cache: "true"
+
+      - name: Install packages
+        run: pdm install
+
+      - name: Run Tests
+        run: pdm run pytest
