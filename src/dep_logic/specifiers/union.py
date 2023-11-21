@@ -7,7 +7,7 @@ from functools import cached_property
 
 from packaging.specifiers import SpecifierSet
 
-from dep_logic.specifiers.base import UnparsedVersion, VersionSpecifier
+from dep_logic.specifiers.base import BaseSpecifier, UnparsedVersion, VersionSpecifier
 from dep_logic.specifiers.range import RangeSpecifier
 from dep_logic.specifiers.special import EmptySpecifier
 from dep_logic.utils import first_different_index, pad_zeros
@@ -82,7 +82,7 @@ class UnionSpecifier(VersionSpecifier):
         return "||".join(map(str, self.ranges))
 
     @staticmethod
-    def _from_ranges(ranges: t.Sequence[RangeSpecifier]) -> VersionSpecifier:
+    def _from_ranges(ranges: t.Sequence[RangeSpecifier]) -> BaseSpecifier:
         if (ranges_number := len(ranges)) == 0:
             return EmptySpecifier()
         elif ranges_number == 1:
@@ -98,7 +98,7 @@ class UnionSpecifier(VersionSpecifier):
     ) -> bool:
         return any(specifier.contains(version, prerelease) for specifier in self.ranges)
 
-    def __invert__(self) -> VersionSpecifier:
+    def __invert__(self) -> BaseSpecifier:
         to_union: list[RangeSpecifier] = []
         if (first := self.ranges[0]).min is not None:
             to_union.append(
@@ -119,7 +119,7 @@ class UnionSpecifier(VersionSpecifier):
             )
         return self._from_ranges(to_union)
 
-    def __and__(self, other: t.Any) -> VersionSpecifier:
+    def __and__(self, other: t.Any) -> BaseSpecifier:
         if isinstance(other, RangeSpecifier):
             if other.is_any():
                 return self
@@ -142,7 +142,7 @@ class UnionSpecifier(VersionSpecifier):
 
     __rand__ = __and__
 
-    def __or__(self, other: t.Any) -> VersionSpecifier:
+    def __or__(self, other: t.Any) -> BaseSpecifier:
         if isinstance(other, RangeSpecifier):
             if other.is_any():
                 return other

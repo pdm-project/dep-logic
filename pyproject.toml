@@ -12,9 +12,6 @@ readme = "README.md"
 license = {text = "Apache-2.0"}
 dynamic = ["version"]
 
-[tool.pdm.version]
-source = "scm"
-
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
@@ -30,7 +27,7 @@ extend-select = [
   "W",    # pycodestyle
   "YTT",  # flake8-2020
 ]
-extend-ignore = ["B018", "B019"]
+extend-ignore = ["B018", "B019", "B905"]
 src = ["src"]
 exclude = ["tests/fixtures"]
 target-version = "py310"
@@ -41,8 +38,17 @@ max-complexity = 10
 [tool.ruff.isort]
 known-first-party = ["pkg_logical"]
 
+[tool.pdm.version]
+source = "scm"
+
 [tool.pdm.dev-dependencies]
 dev = [
     "poetry-core>=1.8.1",
     "pytest>=7.4.3",
 ]
+
+[tool.pyright]
+venvPath = "."
+venv = ".venv"
+pythonVersion = "3.11"
+reportPrivateImportUsage = "information"

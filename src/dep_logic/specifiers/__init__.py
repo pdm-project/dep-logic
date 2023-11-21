@@ -98,7 +98,7 @@ def _from_pkg_specifier(spec: Specifier) -> VersionSpecifier:
     )
 
 
-def parse_version_specifier(spec: str) -> VersionSpecifier:
+def parse_version_specifier(spec: str) -> BaseSpecifier:
     """Parse a specifier string."""
     if spec == "<empty>":
         return EmptySpecifier()

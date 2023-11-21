@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import functools
 import itertools
 from typing import AbstractSet, Iterable, Iterator, TypeVar

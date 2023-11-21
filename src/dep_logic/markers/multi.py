@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Iterator
 
 from dep_logic.markers.any import AnyMarker
@@ -21,7 +23,7 @@ class MultiMarker(BaseMarker):
         return self._markers
 
     @property
-    def complexity(self) -> tuple[int, int]:
+    def complexity(self) -> tuple[int, ...]:
         return tuple(sum(c) for c in zip(*(m.complexity for m in self._markers)))
 
     @classmethod

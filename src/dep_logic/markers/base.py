@@ -6,7 +6,7 @@ from typing import Any
 
 class BaseMarker(metaclass=ABCMeta):
     @property
-    def complexity(self) -> tuple[int, int]:
+    def complexity(self) -> tuple[int, ...]:
         """
         The first number is the number of marker expressions,
         and the second number is 1 if the marker is single-like.

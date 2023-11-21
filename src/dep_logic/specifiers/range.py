@@ -8,6 +8,7 @@ from packaging.specifiers import SpecifierSet
 from packaging.version import Version
 
 from dep_logic.specifiers.base import (
+    BaseSpecifier,
     InvalidSpecifier,
     UnparsedVersion,
     VersionSpecifier,
@@ -87,7 +88,7 @@ class RangeSpecifier(VersionSpecifier):
     ) -> bool:
         return self.to_specifierset().contains(version, prerelease)
 
-    def __invert__(self) -> VersionSpecifier:
+    def __invert__(self) -> BaseSpecifier:
         from dep_logic.specifiers.union import UnionSpecifier
 
         if self.min is None and self.max is None:

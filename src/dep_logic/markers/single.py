@@ -3,7 +3,6 @@ from __future__ import annotations
 import functools
 import typing as t
 from dataclasses import dataclass, field, replace
-from typing import Any
 
 from packaging.markers import Marker as _Marker
 
@@ -50,6 +49,7 @@ class SingleMarker(BaseMarker):
         if self.name != "extra" or not environment or not environment.get("extra"):
             return pkg_marker.evaluate(environment)
         extras = [extra] if isinstance(extra := environment["extra"], str) else extra
+        assert isinstance(self, MarkerExpression)
         is_negated = self.op in ("not in", "!=")
         if is_negated:
             return all(pkg_marker.evaluate({"extra": extra}) for extra in extras)
@@ -158,10 +158,10 @@ class EqualityMarkerUnion(SingleMarker):
         return replace(self, values=values)
 
     @property
-    def complexity(self) -> tuple[int, int]:
+    def complexity(self) -> tuple[int, ...]:
         return len(self.values), 1
 
-    def __and__(self, other: Any) -> BaseMarker:
+    def __and__(self, other: t.Any) -> BaseMarker:
         from dep_logic.markers.multi import MultiMarker
 
         if not isinstance(other, SingleMarker):
@@ -174,12 +174,12 @@ class EqualityMarkerUnion(SingleMarker):
             return self.replace(new_values)
         elif isinstance(other, EqualityMarkerUnion):
             new_values = self.values & other.values
-            return self.replace(new_values)
+            return self.replace(t.cast(OrderedSet, new_values))
         else:
             # intersection with InequalityMarkerUnion will be handled in the other class
             return NotImplemented
 
-    def __or__(self, other: Any) -> BaseMarker:
+    def __or__(self, other: t.Any) -> BaseMarker:
         from dep_logic.markers.union import MarkerUnion
 
         if not isinstance(other, SingleMarker):
@@ -227,10 +227,10 @@ class InequalityMultiMarker(SingleMarker):
         return replace(self, values=values)
 
     @property
-    def complexity(self) -> tuple[int, int]:
+    def complexity(self) -> tuple[int, ...]:
         return len(self.values), 1
 
-    def __and__(self, other: Any) -> BaseMarker:
+    def __and__(self, other: t.Any) -> BaseMarker:
         from dep_logic.markers.multi import MultiMarker
 
         if not isinstance(other, SingleMarker):
@@ -253,11 +253,12 @@ class InequalityMultiMarker(SingleMarker):
                 return MultiMarker(self, other)
         elif isinstance(other, EqualityMarkerUnion):
             new_values = other.values - self.values
-            return other.replace(new_values)
-        else:  # isinstance(other, InequalityMultiMarker)
+            return other.replace(t.cast(OrderedSet, new_values))
+        else:
+            assert isinstance(other, InequalityMultiMarker)
             return replace(self, values=self.values | other.values)
 
-    def __or__(self, other: Any) -> BaseMarker:
+    def __or__(self, other: t.Any) -> BaseMarker:
         from dep_logic.markers.union import MarkerUnion
 
         if not isinstance(other, SingleMarker):
@@ -273,10 +274,11 @@ class InequalityMultiMarker(SingleMarker):
             return self.replace(new_values)
         elif isinstance(other, EqualityMarkerUnion):
             new_values = self.values - other.values
-            return self.replace(new_values)
-        else:  # isinstance(other, InequalityMultiMarker)
+            return self.replace(t.cast(OrderedSet, new_values))
+        else:
+            assert isinstance(other, InequalityMultiMarker)
             new_values = self.values & other.values
-            return self.replace(new_values)
+            return self.replace(t.cast(OrderedSet, new_values))
 
     __rand__ = __and__
     __ror__ = __or__

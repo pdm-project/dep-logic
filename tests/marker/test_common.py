@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pytest
 
 from dep_logic.markers import parse_marker

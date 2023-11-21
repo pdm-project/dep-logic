@@ -3,7 +3,7 @@ from __future__ import annotations
 import functools
 import itertools
 import re
-from typing import AbstractSet, Iterable, Iterator, Literal, Protocol, TypeVar
+from typing import AbstractSet, Iterable, Iterator, Protocol, TypeVar
 
 from dep_logic.markers.base import BaseMarker
 
@@ -54,13 +54,14 @@ def flatten_items(items: Iterable[T], flatten_cls: type[Iterable[T]]) -> list[T]
 def first_different_index(
     iterable1: Iterable[object], iterable2: Iterable[object]
 ) -> int:
+    index = 0
     for index, (item1, item2) in enumerate(zip(iterable1, iterable2)):
         if item1 != item2:
             return index
     return index + 1
 
 
-def pad_zeros(parts: list[V], to_length: int) -> list[V | Literal[0]]:
+def pad_zeros(parts: list[int], to_length: int) -> list[int]:
     if len(parts) >= to_length:
         return parts
     return parts + [0] * (to_length - len(parts))

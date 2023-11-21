@@ -1,3 +1,5 @@
+from typing import cast
+
 import pytest
 from packaging.version import Version
 
@@ -81,7 +83,10 @@ def test_parse_simple_range(value: str, parsed: RangeSpecifier) -> None:
 )
 def test_range_compare_lower(a: str, b: str, expected: bool) -> None:
     assert (
-        parse_version_specifier(a).allows_lower(parse_version_specifier(b)) is expected
+        cast(RangeSpecifier, parse_version_specifier(a)).allows_lower(
+            cast(RangeSpecifier, parse_version_specifier(b))
+        )
+        is expected
     )
 
 
