@@ -12,7 +12,7 @@ from dep_logic.markers.empty import EmptyMarker
 from dep_logic.specifiers import BaseSpecifier
 from dep_logic.specifiers.base import VersionSpecifier
 from dep_logic.specifiers.generic import GenericSpecifier
-from dep_logic.utils import OrderedSet, get_reflect_op
+from dep_logic.utils import DATACLASS_ARGS, OrderedSet, get_reflect_op
 
 if t.TYPE_CHECKING:
     from dep_logic.markers.multi import MultiMarker
@@ -56,7 +56,7 @@ class SingleMarker(BaseMarker):
         return any(pkg_marker.evaluate({"extra": extra}) for extra in extras)
 
 
-@dataclass(slots=True, unsafe_hash=True, repr=False)
+@dataclass(unsafe_hash=True, **DATACLASS_ARGS)
 class MarkerExpression(SingleMarker):
     name: str
     op: str
@@ -142,7 +142,7 @@ class MarkerExpression(SingleMarker):
         return MarkerUnion(self, other)
 
 
-@dataclass(slots=True, unsafe_hash=True, repr=False)
+@dataclass(frozen=True, unsafe_hash=True, **DATACLASS_ARGS)
 class EqualityMarkerUnion(SingleMarker):
     name: str
     values: OrderedSet[str]
@@ -211,7 +211,7 @@ class EqualityMarkerUnion(SingleMarker):
     __ror__ = __or__
 
 
-@dataclass(slots=True, unsafe_hash=True, repr=False)
+@dataclass(frozen=True, unsafe_hash=True, **DATACLASS_ARGS)
 class InequalityMultiMarker(SingleMarker):
     name: str
     values: OrderedSet[str]

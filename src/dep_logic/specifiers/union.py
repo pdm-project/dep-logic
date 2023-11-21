@@ -10,10 +10,10 @@ from packaging.specifiers import SpecifierSet
 from dep_logic.specifiers.base import BaseSpecifier, UnparsedVersion, VersionSpecifier
 from dep_logic.specifiers.range import RangeSpecifier
 from dep_logic.specifiers.special import EmptySpecifier
-from dep_logic.utils import first_different_index, pad_zeros
+from dep_logic.utils import DATACLASS_ARGS, first_different_index, pad_zeros
 
 
-@dataclass(frozen=True, slots=True, unsafe_hash=True, repr=False)
+@dataclass(frozen=True, unsafe_hash=True, **DATACLASS_ARGS)
 class UnionSpecifier(VersionSpecifier):
     ranges: tuple[RangeSpecifier, ...]
     simplified: str | None = field(default=None, compare=False, hash=False)

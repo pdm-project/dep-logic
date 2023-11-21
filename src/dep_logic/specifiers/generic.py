@@ -6,11 +6,12 @@ from dataclasses import dataclass
 
 from dep_logic.specifiers.base import BaseSpecifier, InvalidSpecifier
 from dep_logic.specifiers.special import AnySpecifier, EmptySpecifier
+from dep_logic.utils import DATACLASS_ARGS
 
 Operator = t.Callable[[str, str], bool]
 
 
-@dataclass(frozen=True, slots=True, unsafe_hash=True, repr=False)
+@dataclass(frozen=True, unsafe_hash=True, **DATACLASS_ARGS)
 class GenericSpecifier(BaseSpecifier):
     op: str
     value: str

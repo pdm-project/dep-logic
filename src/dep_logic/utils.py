@@ -3,11 +3,25 @@ from __future__ import annotations
 import functools
 import itertools
 import re
-from typing import AbstractSet, Iterable, Iterator, Protocol, TypeVar
+import sys
+from typing import TYPE_CHECKING, AbstractSet, Iterable, Iterator, Protocol, TypeVar
 
 from dep_logic.markers.base import BaseMarker
 
 _prefix_regex = re.compile(r"^([0-9]+)((?:a|b|c|rc)[0-9]+)$")
+
+if TYPE_CHECKING:
+    from typing import TypedDict
+
+    class _DataClassArgs(TypedDict, total=False):
+        slots: bool
+        repr: bool
+
+
+if sys.version_info >= (3, 10):
+    DATACLASS_ARGS: _DataClassArgs = {"slots": True, "repr": False}
+else:
+    DATACLASS_ARGS = {"repr": False}
 
 
 class Unique(Protocol):
