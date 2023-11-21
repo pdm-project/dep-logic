@@ -7,13 +7,17 @@ from typing import Any
 from packaging.specifiers import SpecifierSet
 from packaging.version import Version
 
-from pkg_logical.specifiers.base import BaseSpecifier, UnparsedVersion
-from pkg_logical.specifiers.empty import EmptySpecifier
-from pkg_logical.utils import first_different_index, pad_zeros
+from dep_logic.specifiers.base import (
+    InvalidSpecifier,
+    UnparsedVersion,
+    VersionSpecifier,
+)
+from dep_logic.specifiers.special import EmptySpecifier
+from dep_logic.utils import first_different_index, pad_zeros
 
 
 @dataclass(frozen=True, slots=True, unsafe_hash=True, repr=False)
-class RangeSpecifier(BaseSpecifier):
+class RangeSpecifier(VersionSpecifier):
     min: Version | None = None
     max: Version | None = None
     include_min: bool = False
@@ -22,12 +26,16 @@ class RangeSpecifier(BaseSpecifier):
 
     def __post_init__(self) -> None:
         if self.min is None and self.include_min:
-            raise ValueError("Cannot include min when min is None")
+            raise InvalidSpecifier("Cannot include min when min is None")
         if self.max is None and self.include_max:
-            raise ValueError("Cannot include max when max is None")
+            raise InvalidSpecifier("Cannot include max when max is None")
 
     def to_specifierset(self) -> SpecifierSet:
         return SpecifierSet(str(self))
+
+    @property
+    def num_parts(self) -> int:
+        return len(self.to_specifierset())
 
     @cached_property
     def _simplified_form(self) -> str | None:
@@ -63,6 +71,7 @@ class RangeSpecifier(BaseSpecifier):
             if (
                 all(p == 0 for p in max_stable[first_different + 1 :])
                 and not self.max.is_prerelease
+                and len(self.min.release) == first_different + 1
             ):
                 return f"~={self.min}"
             return None
@@ -78,8 +87,8 @@ class RangeSpecifier(BaseSpecifier):
     ) -> bool:
         return self.to_specifierset().contains(version, prerelease)
 
-    def __invert__(self) -> BaseSpecifier:
-        from pkg_logical.specifiers.union import UnionSpecifier
+    def __invert__(self) -> VersionSpecifier:
+        from dep_logic.specifiers.union import UnionSpecifier
 
         if self.min is None and self.max is None:
             return EmptySpecifier()
@@ -216,8 +225,8 @@ class RangeSpecifier(BaseSpecifier):
             include_max=intersect_include_max,
         )
 
-    def __or__(self, other: Any) -> BaseSpecifier:
-        from pkg_logical.specifiers.union import UnionSpecifier
+    def __or__(self, other: Any) -> VersionSpecifier:
+        from dep_logic.specifiers.union import UnionSpecifier
 
         if not isinstance(other, RangeSpecifier):
             return NotImplemented

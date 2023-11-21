@@ -1,16 +1,19 @@
 [project]
-name = "pkg-logical"
-version = "0.1.0"
-description = "Logical operational specifiers and markers"
+name = "dep-logic"
+description = "Python dependency specifications supporting logical operations"
 authors = [
     {name = "Frost Ming", email = "me@frostming.com"},
 ]
 dependencies = [
     "packaging>=22",
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.8"
 readme = "README.md"
 license = {text = "Apache-2.0"}
+dynamic = ["version"]
+
+[tool.pdm.version]
+source = "scm"
 
 [build-system]
 requires = ["pdm-backend"]

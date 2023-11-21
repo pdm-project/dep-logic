@@ -7,19 +7,25 @@ from functools import cached_property
 
 from packaging.specifiers import SpecifierSet
 
-from pkg_logical.specifiers.base import BaseSpecifier, UnparsedVersion
-from pkg_logical.specifiers.empty import EmptySpecifier
-from pkg_logical.specifiers.range import RangeSpecifier
-from pkg_logical.utils import first_different_index, pad_zeros
+from dep_logic.specifiers.base import UnparsedVersion, VersionSpecifier
+from dep_logic.specifiers.range import RangeSpecifier
+from dep_logic.specifiers.special import EmptySpecifier
+from dep_logic.utils import first_different_index, pad_zeros
 
 
 @dataclass(frozen=True, slots=True, unsafe_hash=True, repr=False)
-class UnionSpecifier(BaseSpecifier):
+class UnionSpecifier(VersionSpecifier):
     ranges: tuple[RangeSpecifier, ...]
     simplified: str | None = field(default=None, compare=False, hash=False)
 
     def to_specifierset(self) -> SpecifierSet:
-        raise ValueError("Cannot convert UnionSpecifier to SpecifierSet")
+        if (simplified := self._simplified_form) is None:
+            raise ValueError("Cannot convert UnionSpecifier to SpecifierSet")
+        return SpecifierSet(simplified)
+
+    @property
+    def num_parts(self) -> int:
+        return sum(range.num_parts for range in self.ranges)
 
     @cached_property
     def _simplified_form(self) -> str | None:
@@ -29,44 +35,46 @@ class UnionSpecifier(BaseSpecifier):
         left, right, *rest = self.ranges
         if rest:
             return None
-        match left, right:
-            case RangeSpecifier(
-                min=None, max=left_max, include_max=False
-            ), RangeSpecifier(
-                min=right_min, max=None, include_min=False
-            ) if left_max == right_min and left_max is not None:
-                return f"!={left_max}"
-            case RangeSpecifier(
-                min=None, max=left_max, include_max=False
-            ), RangeSpecifier(
-                min=right_min, max=None, include_min=True
-            ) if left_max is not None and right_min is not None:
-                if left_max.is_prerelease or right_min.is_prerelease:
-                    return None
-                left_stable = [left_max.epoch, *left_max.release]
-                right_stable = [right_min.epoch, *right_min.release]
-                max_length = max(len(left_stable), len(right_stable))
-                left_stable = pad_zeros(left_stable, max_length)
-                right_stable = pad_zeros(right_stable, max_length)
-                first_different = first_different_index(left_stable, right_stable)
-                if (
-                    first_different > 0
-                    and right_stable[first_different] - left_stable[first_different]
-                    == 1
-                    and set(
-                        left_stable[first_different + 1 :]
-                        + right_stable[first_different + 1 :]
-                    )
-                    == {0}
-                ):
-                    epoch = "" if left_max.epoch == 0 else f"{left_max.epoch}!"
-                    version = (
-                        ".".join(map(str, left_max.release[:first_different])) + ".*"
-                    )
-                    return f"!={epoch}{version}"
+        if (
+            left.min is None
+            and right.max is None
+            and left.max == right.min
+            and left.max is not None
+        ):
+            # (-inf, version) | (version, inf) => != version
+            return f"!={left.max}"
+
+        if (
+            left.min is None
+            and right.max is None
+            and not left.include_max
+            and right.include_min
+            and left.max is not None
+            and right.min is not None
+        ):
+            # (-inf, X.Y.0) | [X.Y+1.0, inf) => != X.Y.*
+            if left.max.is_prerelease or right.min.is_prerelease:
                 return None
-            case _:
-                return None
+            left_stable = [left.max.epoch, *left.max.release]
+            right_stable = [right.min.epoch, *right.min.release]
+            max_length = max(len(left_stable), len(right_stable))
+            left_stable = pad_zeros(left_stable, max_length)
+            right_stable = pad_zeros(right_stable, max_length)
+            first_different = first_different_index(left_stable, right_stable)
+            if (
+                first_different > 0
+                and right_stable[first_different] - left_stable[first_different] == 1
+                and set(
+                    left_stable[first_different + 1 :]
+                    + right_stable[first_different + 1 :]
+                )
+                == {0}
+            ):
+                epoch = "" if left.max.epoch == 0 else f"{left.max.epoch}!"
+                version = ".".join(map(str, left.max.release[:first_different])) + ".*"
+                return f"!={epoch}{version}"
+
+        return None
 
     def __str__(self) -> str:
         if self._simplified_form is not None:
@@ -74,14 +82,13 @@ class UnionSpecifier(BaseSpecifier):
         return "||".join(map(str, self.ranges))
 
     @staticmethod
-    def _from_ranges(ranges: t.Sequence[RangeSpecifier]) -> BaseSpecifier:
-        match len(ranges):
-            case 0:
-                return EmptySpecifier()
-            case 1:
-                return ranges[0]
-            case _:
-                return UnionSpecifier(tuple(ranges))
+    def _from_ranges(ranges: t.Sequence[RangeSpecifier]) -> VersionSpecifier:
+        if (ranges_number := len(ranges)) == 0:
+            return EmptySpecifier()
+        elif ranges_number == 1:
+            return ranges[0]
+        else:
+            return UnionSpecifier(tuple(ranges))
 
     def is_simple(self) -> bool:
         return self._simplified_form is not None
@@ -91,7 +98,7 @@ class UnionSpecifier(BaseSpecifier):
     ) -> bool:
         return any(specifier.contains(version, prerelease) for specifier in self.ranges)
 
-    def __invert__(self) -> BaseSpecifier:
+    def __invert__(self) -> VersionSpecifier:
         to_union: list[RangeSpecifier] = []
         if (first := self.ranges[0]).min is not None:
             to_union.append(
@@ -112,7 +119,7 @@ class UnionSpecifier(BaseSpecifier):
             )
         return self._from_ranges(to_union)
 
-    def __and__(self, other: t.Any) -> BaseSpecifier:
+    def __and__(self, other: t.Any) -> VersionSpecifier:
         if isinstance(other, RangeSpecifier):
             if other.is_any():
                 return self
@@ -135,7 +142,7 @@ class UnionSpecifier(BaseSpecifier):
 
     __rand__ = __and__
 
-    def __or__(self, other: t.Any) -> BaseSpecifier:
+    def __or__(self, other: t.Any) -> VersionSpecifier:
         if isinstance(other, RangeSpecifier):
             if other.is_any():
                 return other

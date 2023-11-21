@@ -1,7 +1,7 @@
 import pytest
 from packaging.version import Version
 
-from pkg_logical.specifiers import RangeSpecifier, parse
+from dep_logic.specifiers import RangeSpecifier, parse_version_specifier
 
 
 @pytest.mark.parametrize(
@@ -60,7 +60,7 @@ from pkg_logical.specifiers import RangeSpecifier, parse
     ],
 )
 def test_parse_simple_range(value: str, parsed: RangeSpecifier) -> None:
-    spec = parse(value)
+    spec = parse_version_specifier(value)
     assert spec == parsed
     assert str(spec) == value
     assert spec.is_simple()
@@ -80,7 +80,9 @@ def test_parse_simple_range(value: str, parsed: RangeSpecifier) -> None:
     ],
 )
 def test_range_compare_lower(a: str, b: str, expected: bool) -> None:
-    assert parse(a).allows_lower(parse(b)) is expected
+    assert (
+        parse_version_specifier(a).allows_lower(parse_version_specifier(b)) is expected
+    )
 
 
 @pytest.mark.parametrize(
@@ -175,7 +177,7 @@ def test_range_str_normalization(value: RangeSpecifier, expected: str) -> None:
     ],
 )
 def test_range_intersection(a: str, b: str, expected: str) -> None:
-    assert str(parse(a) & parse(b)) == expected
+    assert str(parse_version_specifier(a) & parse_version_specifier(b)) == expected
 
 
 @pytest.mark.parametrize(
@@ -192,8 +194,8 @@ def test_range_intersection(a: str, b: str, expected: str) -> None:
     ],
 )
 def test_range_invert(value: str, inverted: str) -> None:
-    assert str(~parse(value)) == inverted
-    assert str(~parse(inverted)) == value
+    assert str(~parse_version_specifier(value)) == inverted
+    assert str(~parse_version_specifier(inverted)) == value
 
 
 @pytest.mark.parametrize(
@@ -213,4 +215,4 @@ def test_range_invert(value: str, inverted: str) -> None:
     ],
 )
 def test_range_union(a: str, b: str, expected: str) -> None:
-    assert str(parse(a) | parse(b)) == expected
+    assert str(parse_version_specifier(a) | parse_version_specifier(b)) == expected

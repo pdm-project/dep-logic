@@ -1,3 +1,3 @@
-# pkg-logical
+# Dep-Logic
 
-Logical operational specifiers and markers.
+Python dependency specifications supporting logical operations

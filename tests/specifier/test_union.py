@@ -1,7 +1,11 @@
 import pytest
 from packaging.version import Version
 
-from pkg_logical.specifiers import RangeSpecifier, UnionSpecifier, parse
+from dep_logic.specifiers import (
+    RangeSpecifier,
+    UnionSpecifier,
+    parse_version_specifier,
+)
 
 
 @pytest.mark.parametrize(
@@ -28,7 +32,7 @@ from pkg_logical.specifiers import RangeSpecifier, UnionSpecifier, parse
     ],
 )
 def test_parse_simple_union_specifier(spec: str, parsed: UnionSpecifier) -> None:
-    value = parse(spec)
+    value = parse_version_specifier(spec)
     assert value.is_simple()
     assert value == parsed
     assert str(value) == spec
@@ -60,7 +64,7 @@ def test_parse_simple_union_specifier(spec: str, parsed: UnionSpecifier) -> None
     ],
 )
 def test_parse_union_specifier(spec: str, parsed: UnionSpecifier) -> None:
-    value = parse(spec)
+    value = parse_version_specifier(spec)
     assert not value.is_simple()
     assert value == parsed
 
@@ -76,7 +80,7 @@ def test_parse_union_specifier(spec: str, parsed: UnionSpecifier) -> None:
     ],
 )
 def test_union_intesection(a: str, b: str, expected: str) -> None:
-    assert str(parse(a) & parse(b)) == expected
+    assert str(parse_version_specifier(a) & parse_version_specifier(b)) == expected
 
 
 @pytest.mark.parametrize(
@@ -91,4 +95,4 @@ def test_union_intesection(a: str, b: str, expected: str) -> None:
     ],
 )
 def test_union_union(a: str, b: str, expected: str) -> None:
-    assert str(parse(a) | parse(b)) == expected
+    assert str(parse_version_specifier(a) | parse_version_specifier(b)) == expected
