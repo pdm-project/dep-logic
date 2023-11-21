@@ -49,11 +49,3 @@ class BaseMarker(metaclass=ABCMeta):
     @abstractmethod
     def __str__(self) -> str:
         raise NotImplementedError
-
-    @abstractmethod
-    def __hash__(self) -> int:
-        raise NotImplementedError
-
-    @abstractmethod
-    def __eq__(self, other: object) -> bool:
-        raise NotImplementedError

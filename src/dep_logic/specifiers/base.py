@@ -22,21 +22,6 @@ class BaseSpecifier(metaclass=abc.ABCMeta):
         """
 
     @abc.abstractmethod
-    def __hash__(self) -> int:
-        """
-        Returns a hash value for this Specifier-like object.
-        """
-
-    @abc.abstractmethod
-    def __eq__(self, other: object) -> bool:
-        """
-        Returns a boolean representing whether or not the two Specifier-like
-        objects are equal.
-
-        :param other: The other object to check against.
-        """
-
-    @abc.abstractmethod
     def __and__(self, other: t.Any) -> BaseSpecifier:
         raise NotImplementedError
 
