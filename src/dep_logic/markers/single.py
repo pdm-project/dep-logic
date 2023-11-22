@@ -46,7 +46,7 @@ class SingleMarker(BaseMarker):
 
     def evaluate(self, environment: dict[str, str] | None = None) -> bool:
         pkg_marker = _Marker(str(self))
-        if self.name != "extra" or not environment or not environment.get("extra"):
+        if self.name != "extra" or not environment:
             return pkg_marker.evaluate(environment)
         extras = [extra] if isinstance(extra := environment["extra"], str) else extra
         assert isinstance(self, MarkerExpression)

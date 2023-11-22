@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import Iterator
 
 from dep_logic.markers.any import AnyMarker
@@ -7,25 +8,22 @@ from dep_logic.markers.base import BaseMarker
 from dep_logic.markers.empty import EmptyMarker
 from dep_logic.markers.multi import MultiMarker
 from dep_logic.markers.single import SingleMarker
-from dep_logic.utils import flatten_items, intersection, union
+from dep_logic.utils import DATACLASS_ARGS, flatten_items, intersection, union
 
 
+@dataclass(init=False, frozen=True, unsafe_hash=True, **DATACLASS_ARGS)
 class MarkerUnion(BaseMarker):
-    __slots__ = ("_markers",)
+    markers: tuple[BaseMarker, ...]
 
     def __init__(self, *markers: BaseMarker) -> None:
-        self._markers = tuple(flatten_items(markers, MarkerUnion))
-
-    @property
-    def markers(self) -> tuple[BaseMarker, ...]:
-        return self._markers
+        object.__setattr__(self, "markers", tuple(flatten_items(markers, MarkerUnion)))
 
     def __iter__(self) -> Iterator[BaseMarker]:
-        return iter(self._markers)
+        return iter(self.markers)
 
     @property
     def complexity(self) -> tuple[int, ...]:
-        return tuple(sum(c) for c in zip(*(m.complexity for m in self._markers)))
+        return tuple(sum(c) for c in zip(*(m.complexity for m in self.markers)))
 
     @classmethod
     def of(cls, *markers: BaseMarker) -> BaseMarker:
@@ -105,7 +103,7 @@ class MarkerUnion(BaseMarker):
             - intersection between two markerunions where there are some common markers
               and the intersection of unique markers is not a single marker
         """
-        if other in self._markers:
+        if other in self.markers:
             return other
 
         if isinstance(other, MarkerUnion):
@@ -138,7 +136,7 @@ class MarkerUnion(BaseMarker):
         return None
 
     def evaluate(self, environment: dict[str, str] | None = None) -> bool:
-        return any(m.evaluate(environment) for m in self._markers)
+        return any(m.evaluate(environment) for m in self.markers)
 
     def without_extras(self) -> BaseMarker:
         return self.exclude("extra")
@@ -146,7 +144,7 @@ class MarkerUnion(BaseMarker):
     def exclude(self, marker_name: str) -> BaseMarker:
         new_markers = []
 
-        for m in self._markers:
+        for m in self.markers:
             if isinstance(m, SingleMarker) and m.name == marker_name:
                 # The marker is not relevant since it must be excluded
                 continue
@@ -161,16 +159,7 @@ class MarkerUnion(BaseMarker):
         return self.of(*new_markers)
 
     def only(self, *marker_names: str) -> BaseMarker:
-        return self.of(*(m.only(*marker_names) for m in self._markers))
-
-    def __eq__(self, other: object) -> bool:
-        if not isinstance(other, MarkerUnion):
-            return False
-
-        return self._markers == other.markers
-
-    def __hash__(self) -> int:
-        return hash(("union", *self._markers))
+        return self.of(*(m.only(*marker_names) for m in self.markers))
 
     def __str__(self) -> str:
-        return " or ".join(str(m) for m in self._markers)
+        return " or ".join(str(m) for m in self.markers)
