@@ -1,6 +1,17 @@
 # Dep-Logic
 
+![PyPI - Version](https://img.shields.io/pypi/v/dep-logic)
+![Python Version from PEP 621 TOML](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2Fpdm-project%2Fdep-logic%2Fmain%2Fpyproject.toml)
+![GitHub License](https://img.shields.io/github/license/pdm-project/dep-logic)
+
+
 Python dependency specifications supporting logical operations
+
+## Installation
+
+```bash
+pip install dep-logic
+```
 
 This library requires Python 3.8 or later.
 
