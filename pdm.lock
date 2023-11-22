@@ -5,7 +5,7 @@
 groups = ["default", "dev"]
 strategy = ["cross_platform"]
 lock_version = "4.4"
-content_hash = "sha256:23359f0338a33c4dd557e8ec2e8588044157d7094fa39ee851b81b101a0a9ee5"
+content_hash = "sha256:8707f6ab19e5288a6f069a1870e865da1fcf2448c761315d177a26ede69848d5"
 
 [[package]]
 name = "colorama"
@@ -55,16 +55,6 @@ summary = "plugin and hook calling mechanisms for python"
 files = [
     {file = "pluggy-1.3.0-py3-none-any.whl", hash = "sha256:d89c696a773f8bd377d18e5ecda92b7a3793cbe66c87060a6fb58c7b6e1061f7"},
     {file = "pluggy-1.3.0.tar.gz", hash = "sha256:cf61ae8f126ac6f7c451172cf30e3e43d3ca77615509771b3a984a0730651e12"},
-]
-
-[[package]]
-name = "poetry-core"
-version = "1.8.1"
-requires_python = ">=3.8,<4.0"
-summary = "Poetry PEP 517 Build Backend"
-files = [
-    {file = "poetry_core-1.8.1-py3-none-any.whl", hash = "sha256:194832b24f3283e01c5402eae71a6aae850ecdfe53f50a979c76bf7aa5010ffa"},
-    {file = "poetry_core-1.8.1.tar.gz", hash = "sha256:67a76c671da2a70e55047cddda83566035b701f7e463b32a2abfeac6e2a16376"},
 ]
 
 [[package]]
