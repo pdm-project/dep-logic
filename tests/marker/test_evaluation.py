@@ -107,6 +107,8 @@ def test_evaluates(
         # single extra
         ("extra != 'security'", {"extra": "quux"}, True),
         ("extra != 'security'", {"extra": "security"}, False),
+        ("extra != 'security'", {}, True),
+        ("extra != 'security'", {"platform_machine": "x86_64"}, True),
         # normalization
         ("extra == 'Security.1'", {"extra": "security-1"}, True),
         ("extra == 'a'", {}, False),
