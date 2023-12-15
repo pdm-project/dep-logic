@@ -53,7 +53,7 @@ python_version < "3.8" and python_version >= "3.6"
 
 This project is based on @sdispater's [poetry-core](https://github.com/python-poetry/poetry-core) code, but it includes additional packages and a lark parser, which increases the package size and makes it less reusable.
 
-Furthermore, `poetry-core` does not always comply with PEP-508. As a result, this project aims to offer a lightweight utility for dependency specification logic using [PyPA's packaging](https://github.com/pypa/packging).
+Furthermore, `poetry-core` does not always comply with PEP-508. As a result, this project aims to offer a lightweight utility for dependency specification logic using [PyPA's packaging](https://github.com/pypa/packaging).
 
 ## Caveats
 
