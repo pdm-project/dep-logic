@@ -58,6 +58,16 @@ dev = [
     "pytest>=7.4.3",
 ]
 
+[tool.pdm.scripts]
+test = "pytest"
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+testpaths = [
+  "src/",
+  "tests/",
+]
+
 [tool.pyright]
 venvPath = "."
 venv = ".venv"
