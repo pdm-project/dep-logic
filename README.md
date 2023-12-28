@@ -27,7 +27,7 @@ This library allows logic operations on version specifiers and environment marke
 For example:
 
 ```pycon
->>> from dep_logic.specifier import parse_version_specifier
+>>> from dep_logic.specifiers import parse_version_specifier
 >>>
 >>> a = parse_version_specifier(">=1.0.0")
 >>> b = parse_version_specifier("<2.0.0")
