@@ -6,12 +6,12 @@ import re
 import sys
 from typing import TYPE_CHECKING, AbstractSet, Iterable, Iterator, Protocol, TypeVar
 
-from dep_logic.markers.base import BaseMarker
-
 _prefix_regex = re.compile(r"^([0-9]+)((?:a|b|c|rc)[0-9]+)$")
 
 if TYPE_CHECKING:
     from typing import TypedDict
+
+    from dep_logic.markers.base import BaseMarker
 
     class _DataClassArgs(TypedDict, total=False):
         slots: bool
@@ -24,7 +24,7 @@ else:
     DATACLASS_ARGS = {"repr": False}
 
 
-class Unique(Protocol):
+class Ident(Protocol):
     def __hash__(self) -> int:
         ...
 
@@ -32,7 +32,7 @@ class Unique(Protocol):
         ...
 
 
-T = TypeVar("T", bound=Unique)
+T = TypeVar("T", bound=Ident)
 V = TypeVar("V")
 
 

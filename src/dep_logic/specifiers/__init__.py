@@ -7,6 +7,7 @@ import operator
 from packaging.specifiers import Specifier, SpecifierSet
 from packaging.version import Version
 
+from dep_logic.specifiers.arbitrary import ArbitrarySpecifier
 from dep_logic.specifiers.base import (
     BaseSpecifier,
     InvalidSpecifier,
@@ -87,6 +88,8 @@ def _from_pkg_specifier(spec: Specifier) -> VersionSpecifier:
                 ),
                 simplified=str(spec),
             )
+    elif op == "===":
+        return ArbitrarySpecifier(target=version)
     else:
         raise InvalidSpecifier(f'Unsupported operator "{op}" in specifier "{spec}"')
     return RangeSpecifier(
@@ -119,5 +122,6 @@ __all__ = [
     "UnionSpecifier",
     "BaseSpecifier",
     "GenericSpecifier",
+    "ArbitrarySpecifier",
     "InvalidSpecifier",
 ]
