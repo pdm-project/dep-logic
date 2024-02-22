@@ -57,4 +57,4 @@ Furthermore, `poetry-core` does not always comply with PEP-508. As a result, thi
 
 ## Caveats
 
-`===` operator is not supported for logic operations.
+Logic operations with `===<string>` specifiers is partially supported.
