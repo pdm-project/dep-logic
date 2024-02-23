@@ -53,7 +53,7 @@ class BaseSpecifier(metaclass=abc.ABCMeta):
 class VersionSpecifier(BaseSpecifier):
     @abc.abstractmethod
     def contains(
-        self, version: UnparsedVersion, prerelease: bool | None = None
+        self, version: UnparsedVersion, prereleases: bool | None = None
     ) -> bool:
         raise NotImplementedError
 

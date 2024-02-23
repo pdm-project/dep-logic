@@ -94,9 +94,11 @@ class UnionSpecifier(VersionSpecifier):
         return self._simplified_form is not None
 
     def contains(
-        self, version: UnparsedVersion, prerelease: bool | None = None
+        self, version: UnparsedVersion, prereleases: bool | None = None
     ) -> bool:
-        return any(specifier.contains(version, prerelease) for specifier in self.ranges)
+        return any(
+            specifier.contains(version, prereleases) for specifier in self.ranges
+        )
 
     def __invert__(self) -> BaseSpecifier:
         to_union: list[RangeSpecifier] = []

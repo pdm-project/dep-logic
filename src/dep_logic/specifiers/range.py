@@ -84,9 +84,9 @@ class RangeSpecifier(VersionSpecifier):
         return f'{">=" if self.include_min else ">"}{self.min},{"<=" if self.include_max else "<"}{self.max}'
 
     def contains(
-        self, version: UnparsedVersion, prerelease: bool | None = None
+        self, version: UnparsedVersion, prereleases: bool | None = None
     ) -> bool:
-        return self.to_specifierset().contains(version, prerelease)
+        return self.to_specifierset().contains(version, prereleases)
 
     def __invert__(self) -> BaseSpecifier:
         from dep_logic.specifiers.union import UnionSpecifier

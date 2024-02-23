@@ -23,7 +23,7 @@ class ArbitrarySpecifier(VersionSpecifier):
         return f"==={self.target}"
 
     def contains(
-        self, version: UnparsedVersion, prerelease: bool | None = None
+        self, version: UnparsedVersion, prereleases: bool | None = None
     ) -> bool:
         return str(version) == self.target
 
