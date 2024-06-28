@@ -253,8 +253,12 @@ class Platform:
             return "Windows"
         return "Linux"
 
+    def is_current(self) -> bool:
+        current = self.current()
+        return isinstance(self.os, type(current.os)) and self.arch == current.arch
+
     def markers(self) -> dict[str, str]:
-        if self == self.current():
+        if self.is_current():
             return {}
         return {
             "os_name": self.os_name,

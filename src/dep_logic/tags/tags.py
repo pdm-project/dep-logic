@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from platform import python_implementation, python_version
 from typing import TYPE_CHECKING
 
-from ..specifiers import VersionSpecifier, parse_version_specifier
+from ..specifiers import InvalidSpecifier, VersionSpecifier, parse_version_specifier
 from .platform import Platform
 
 if TYPE_CHECKING:
@@ -32,7 +32,7 @@ def parse_wheel_tags(filename: str) -> tuple[list[str], list[str], list[str]]:
 def _ensure_version_specifier(spec: str) -> VersionSpecifier:
     parsed = parse_version_specifier(spec)
     if not isinstance(parsed, VersionSpecifier):
-        raise ValueError(f"Invalid version specifier {spec}")
+        raise InvalidSpecifier(f"Invalid version specifier {spec}")
     return parsed
 
 
@@ -133,7 +133,7 @@ class EnvSpec:
         # cp36-cp36m-*
         # cp312-cp312m-*
         # pp310-pypy310_pp75-*
-        if abi_impl != "none" and abi_impl != python_tag.lower():
+        if abi_impl != "none" and not abi_impl.startswith(python_tag.lower()):
             return None
         if major and minor:
             wheel_range = parse_version_specifier(f"=={major}.{minor}.*")
