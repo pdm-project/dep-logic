@@ -55,6 +55,12 @@ This project is based on @sdispater's [poetry-core](https://github.com/python-po
 
 Furthermore, `poetry-core` does not always comply with PEP-508. As a result, this project aims to offer a lightweight utility for dependency specification logic using [PyPA's packaging](https://github.com/pypa/packaging).
 
+Submodules:
+
+- `dep_logic.specifiers` - PEP 440 version specifiers
+- `dep_logic.markers` - PEP 508 environment markers
+- `dep_logic.tags` - PEP 425 platform tags
+
 ## Caveats
 
 Logic operations with `===<string>` specifiers is partially supported.

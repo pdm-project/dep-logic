@@ -25,11 +25,9 @@ else:
 
 
 class Ident(Protocol):
-    def __hash__(self) -> int:
-        ...
+    def __hash__(self) -> int: ...
 
-    def __eq__(self, __value: object) -> bool:
-        ...
+    def __eq__(self, __value: object) -> bool: ...
 
 
 T = TypeVar("T", bound=Ident)

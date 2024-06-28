@@ -30,6 +30,11 @@ build-backend = "pdm.backend"
 
 [tool.ruff]
 line-length = 88
+src = ["src"]
+exclude = ["tests/fixtures"]
+target-version = "py310"
+
+[tool.ruff.lint]
 extend-select = [
   "I",    # isort
   "B",    # flake8-bugbear
@@ -40,14 +45,11 @@ extend-select = [
   "YTT",  # flake8-2020
 ]
 extend-ignore = ["B018", "B019", "B905"]
-src = ["src"]
-exclude = ["tests/fixtures"]
-target-version = "py310"
 
-[tool.ruff.mccabe]
+[tool.ruff.lint.mccabe]
 max-complexity = 10
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 known-first-party = ["dep_logic"]
 
 [tool.pdm.version]
@@ -72,4 +74,4 @@ testpaths = [
 venvPath = "."
 venv = ".venv"
 pythonVersion = "3.11"
-reportPrivateImportUsage = "information"
+reportPrivateImportUsage = "none"

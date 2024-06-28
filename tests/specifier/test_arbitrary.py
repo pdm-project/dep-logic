@@ -42,6 +42,6 @@ def test_arbitrary_union(a: str, b: str, expected: str) -> None:
 def test_arbitrary_unsupported(a: str, b: str, operand: str) -> None:
     with pytest.raises(ValueError):
         if operand == "and":
-            parse_version_specifier(a) & parse_version_specifier(b)
+            _ = parse_version_specifier(a) & parse_version_specifier(b)
         else:
-            parse_version_specifier(a) | parse_version_specifier(b)
+            _ = parse_version_specifier(a) | parse_version_specifier(b)
