@@ -90,6 +90,14 @@ class EnvSpec:
     platform: Platform
     implementation: Implementation
 
+    def as_dict(self) -> dict[str, str | bool]:
+        return {
+            "requires_python": str(self.requires_python),
+            "platform": str(self.platform),
+            "implementation": self.implementation.name,
+            "gil_disabled": self.implementation.gil_disabled,
+        }
+
     @classmethod
     def from_spec(
         cls,

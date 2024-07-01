@@ -319,16 +319,32 @@ def test_platform_tags_musl():
 
 
 @pytest.mark.parametrize(
-    "text,expected",
+    "text,expected,normalized",
     [
-        ("linux", Platform(os.Manylinux(2, 17), Arch.X86_64)),
-        ("macos", Platform(os.Macos(12, 0), Arch.Aarch64)),
-        ("windows", Platform(os.Windows(), Arch.X86_64)),
-        ("alpine", Platform(os.Musllinux(1, 2), Arch.X86_64)),
-        ("manylinux_2_20_aarch64", Platform(os.Manylinux(2, 20), Arch.Aarch64)),
-        ("macos_14_0_arm64", Platform(os.Macos(14, 0), Arch.Aarch64)),
-        ("windows_amd64", Platform(os.Windows(), Arch.X86_64)),
+        ("linux", Platform(os.Manylinux(2, 17), Arch.X86_64), "manylinux_2_17_x86_64"),
+        ("macos", Platform(os.Macos(12, 0), Arch.Aarch64), "macos_12_0_arm64"),
+        ("windows", Platform(os.Windows(), Arch.X86_64), "windows_amd64"),
+        ("alpine", Platform(os.Musllinux(1, 2), Arch.X86_64), "musllinux_1_2_x86_64"),
+        (
+            "manylinux_2_20_aarch64",
+            Platform(os.Manylinux(2, 20), Arch.Aarch64),
+            "manylinux_2_20_aarch64",
+        ),
+        (
+            "macos_14_0_arm64",
+            Platform(os.Macos(14, 0), Arch.Aarch64),
+            "macos_14_0_arm64",
+        ),
+        ("windows_amd64", Platform(os.Windows(), Arch.X86_64), "windows_amd64"),
+        ("windows_arm64", Platform(os.Windows(), Arch.Aarch64), "windows_arm64"),
+        (
+            "macos_12_0_arm64",
+            Platform(os.Macos(12, 0), Arch.Aarch64),
+            "macos_12_0_arm64",
+        ),
     ],
 )
-def test_parse_platform(text, expected):
-    assert Platform.parse(text) == expected
+def test_parse_platform(text, expected, normalized):
+    platform = Platform.parse(text)
+    assert platform == expected
+    assert str(platform) == normalized

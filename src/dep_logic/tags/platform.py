@@ -24,11 +24,12 @@ class Platform:
 
         Available operating systems:
         - `linux`: an alias for `manylinux_2_17_x86_64`
-        - `windows`: an alias for `win_x86_64`
+        - `windows`: an alias for `win_amd64`
         - `macos`: an alias for `macos_12_0_arm64`
         - `alpine`: an alias for `musllinux_1_2_x86_64`
-        - `windows_amd64`: an alias for `win_x86_64`
+        - `windows_amd64`
         - `windows_x86`
+        - `windows_arm64`
         - `macos_arm64`: an alias for `macos_12_0_arm64`
         - `macos_x86_64`: an alias for `macos_12_0_x86_64`
         - `macos_X_Y_arm64`
@@ -50,6 +51,8 @@ class Platform:
             return cls(os.Windows(), Arch.X86_64)
         elif platform == "windows_x86":
             return cls(os.Windows(), Arch.X86)
+        elif platform == "windows_arm64":
+            return cls(os.Windows(), Arch.Aarch64)
         elif platform == "macos_arm64":
             return cls(os.Macos(12, 0), Arch.Aarch64)
         elif platform == "macos_x86_64":
@@ -73,6 +76,13 @@ class Platform:
             raise PlatformError(
                 f"Unsupported platform {platform}, expected one of {cls.choices()}"
             )
+
+    def __str__(self) -> str:
+        if isinstance(self.os, os.Windows) and self.arch == Arch.X86_64:
+            return "windows_amd64"
+        if isinstance(self.os, (os.Macos, os.Windows)) and self.arch == Arch.Aarch64:
+            return f"{self.os}_arm64"
+        return f"{self.os}_{self.arch}"
 
     @classmethod
     def current(cls) -> Platform:
@@ -112,6 +122,7 @@ class Platform:
             "alpine",
             "windows_amd64",
             "windows_x86",
+            "windows_arm64",
             "macos_arm64",
             "macos_x86_64",
             "macos_X_Y_arm64",
