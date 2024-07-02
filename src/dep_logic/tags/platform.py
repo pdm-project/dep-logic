@@ -5,8 +5,12 @@ import sys
 from dataclasses import dataclass
 from enum import Enum
 from functools import cached_property
+from typing import TYPE_CHECKING
 
 from . import os
+
+if TYPE_CHECKING:
+    from typing import Self
 
 
 class PlatformError(Exception):
@@ -19,7 +23,7 @@ class Platform:
     arch: Arch
 
     @classmethod
-    def parse(cls, platform: str) -> Platform:
+    def parse(cls, platform: str) -> Self:
         """Parse a platform string (e.g., `linux_x86_64`, `macosx_10_9_x86_64`, or `win_amd64`)
 
         Available operating systems:
@@ -47,18 +51,18 @@ class Platform:
             return cls(os.Macos(12, 0), Arch.Aarch64)
         elif platform == "alpine":
             return cls(os.Musllinux(1, 2), Arch.X86_64)
-        elif platform == "windows_amd64":
-            return cls(os.Windows(), Arch.X86_64)
-        elif platform == "windows_x86":
-            return cls(os.Windows(), Arch.X86)
-        elif platform == "windows_arm64":
-            return cls(os.Windows(), Arch.Aarch64)
+        elif platform.startswith("windows_"):
+            return cls(os.Windows(), Arch.parse(platform.split("_")[1]))
         elif platform == "macos_arm64":
             return cls(os.Macos(12, 0), Arch.Aarch64)
         elif platform == "macos_x86_64":
             return cls(os.Macos(12, 0), Arch.X86_64)
         elif platform.startswith("macos_"):
             parts = platform.split("_")
+            if len(parts) < 4:
+                raise PlatformError(
+                    f"Unsupported platform {platform}, expected one of {cls.choices()}"
+                )
             major = int(parts[1])
             minor = int(parts[2])
             return cls(os.Macos(major, minor), Arch.parse(parts[3]))
@@ -85,7 +89,7 @@ class Platform:
         return f"{self.os}_{self.arch}"
 
     @classmethod
-    def current(cls) -> Platform:
+    def current(cls) -> Self:
         """Return the current platform."""
         import platform
 

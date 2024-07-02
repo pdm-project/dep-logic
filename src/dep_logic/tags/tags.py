@@ -8,7 +8,7 @@ from ..specifiers import InvalidSpecifier, VersionSpecifier, parse_version_speci
 from .platform import Platform
 
 if TYPE_CHECKING:
-    from typing import Literal
+    from typing import Literal, Self
 
 
 def parse_wheel_tags(filename: str) -> tuple[list[str], list[str], list[str]]:
@@ -63,7 +63,7 @@ class Implementation:
             return "pt"
 
     @classmethod
-    def current(cls) -> Implementation:
+    def current(cls) -> Self:
         import sysconfig
 
         implementation = python_implementation()
@@ -73,11 +73,11 @@ class Implementation:
         )
 
     @classmethod
-    def parse(cls, name: str, gil_disabled: bool = False) -> Implementation:
+    def parse(cls, name: str, gil_disabled: bool = False) -> Self:
         if gil_disabled and name != "cpython":
             raise UnsupportedImplementation("Only CPython supports GIL disabled mode")
         if name in ("cpython", "pypy", "pyston"):
-            return Implementation(name, gil_disabled)
+            return cls(name, gil_disabled)
         else:
             raise UnsupportedImplementation(
                 f"Unsupported implementation: {name}, expected cpython, pypy, or pyston"
@@ -105,7 +105,7 @@ class EnvSpec:
         platform: str,
         implementation: str,
         gil_disabled: bool = False,
-    ) -> EnvSpec:
+    ) -> Self:
         return cls(
             _ensure_version_specifier(requires_python),
             Platform.parse(platform),
@@ -113,7 +113,7 @@ class EnvSpec:
         )
 
     @classmethod
-    def current(cls) -> EnvSpec:
+    def current(cls) -> Self:
         requires_python = _ensure_version_specifier(f"=={python_version()}")
         platform = Platform.current()
         implementation = Implementation.current()
