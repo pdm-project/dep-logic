@@ -193,3 +193,9 @@ class EnvSpec:
         return self.compatibility(
             wheel_python_tags, wheel_abi_tags, wheel_platform_tags
         )
+
+    def markers(self) -> dict[str, str]:
+        return {
+            "implementation_name": self.implementation.name,
+            **self.platform.markers(),
+        }
