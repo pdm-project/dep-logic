@@ -313,7 +313,10 @@ class Arch(Enum):
             return None
 
     def get_mac_binary_formats(self) -> list[str]:
-        formats = [self.value]
+        if self == Arch.Aarch64:
+            formats = ["arm64"]
+        else:
+            formats = [self.value]
 
         if self == Arch.X86_64:
             formats.extend(["intel", "fat64", "fat32"])

@@ -103,7 +103,7 @@ class EnvSpec:
         cls,
         requires_python: str,
         platform: str,
-        implementation: str,
+        implementation: str = "cpython",
         gil_disabled: bool = False,
     ) -> Self:
         return cls(
