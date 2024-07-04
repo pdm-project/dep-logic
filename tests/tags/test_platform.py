@@ -338,9 +338,9 @@ def test_platform_tags_musl():
         ("windows_amd64", Platform(os.Windows(), Arch.X86_64), "windows_amd64"),
         ("windows_arm64", Platform(os.Windows(), Arch.Aarch64), "windows_arm64"),
         (
-            "macos_12_0_arm64",
-            Platform(os.Macos(12, 0), Arch.Aarch64),
-            "macos_12_0_arm64",
+            "macos_12_0_x86_64",
+            Platform(os.Macos(12, 0), Arch.X86_64),
+            "macos_12_0_x86_64",
         ),
     ],
 )

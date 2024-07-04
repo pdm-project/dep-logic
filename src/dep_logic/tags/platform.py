@@ -1,6 +1,7 @@
 # Abstractions for understanding the current platform (operating system and architecture).
 from __future__ import annotations
 
+import re
 import sys
 from dataclasses import dataclass
 from enum import Enum
@@ -15,6 +16,11 @@ if TYPE_CHECKING:
 
 class PlatformError(Exception):
     pass
+
+
+_platform_major_minor_re = re.compile(
+    r"(?P<os>manylinux|macos|musllinux)_(?P<major>\d+?)_(?P<minor>\d+?)_(?P<arch>[a-z0-9_]+)$"
+)
 
 
 @dataclass(frozen=True)
@@ -52,30 +58,19 @@ class Platform:
         elif platform == "alpine":
             return cls(os.Musllinux(1, 2), Arch.X86_64)
         elif platform.startswith("windows_"):
-            return cls(os.Windows(), Arch.parse(platform.split("_")[1]))
+            return cls(os.Windows(), Arch.parse(platform.split("_", 1)[1]))
         elif platform == "macos_arm64":
             return cls(os.Macos(12, 0), Arch.Aarch64)
         elif platform == "macos_x86_64":
             return cls(os.Macos(12, 0), Arch.X86_64)
-        elif platform.startswith("macos_"):
-            parts = platform.split("_")
-            if len(parts) < 4:
-                raise PlatformError(
-                    f"Unsupported platform {platform}, expected one of {cls.choices()}"
-                )
-            major = int(parts[1])
-            minor = int(parts[2])
-            return cls(os.Macos(major, minor), Arch.parse(parts[3]))
-        elif platform.startswith("musllinux_"):
-            parts = platform.split("_")
-            major = int(parts[1])
-            minor = int(parts[2])
-            return cls(os.Musllinux(major, minor), Arch.parse(parts[3]))
-        elif platform.startswith("manylinux_"):
-            parts = platform.split("_")
-            major = int(parts[1])
-            minor = int(parts[2])
-            return cls(os.Manylinux(major, minor), Arch.parse(parts[3]))
+        elif (m := _platform_major_minor_re.match(platform)) is not None:
+            os_name, major, minor, arch = m.groups()
+            if os_name == "manylinux":
+                return cls(os.Manylinux(int(major), int(minor)), Arch.parse(arch))
+            elif os_name == "macos":
+                return cls(os.Macos(int(major), int(minor)), Arch.parse(arch))
+            else:  # os_name == "musllinux"
+                return cls(os.Musllinux(int(major), int(minor)), Arch.parse(arch))
         else:
             raise PlatformError(
                 f"Unsupported platform {platform}, expected one of {cls.choices()}"
