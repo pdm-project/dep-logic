@@ -1,5 +1,12 @@
 from .platform import Platform, PlatformError
-from .tags import EnvSpec, InvalidWheelFilename, TagsError, UnsupportedImplementation
+from .tags import (
+    EnvCompatibility,
+    EnvSpec,
+    Implementation,
+    InvalidWheelFilename,
+    TagsError,
+    UnsupportedImplementation,
+)
 
 __all__ = [
     "Platform",
@@ -8,4 +15,6 @@ __all__ = [
     "UnsupportedImplementation",
     "InvalidWheelFilename",
     "EnvSpec",
+    "Implementation",
+    "EnvCompatibility",
 ]
