@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import sys
 from dataclasses import dataclass
-from platform import python_implementation, python_version
+from enum import IntEnum, auto
+from platform import python_implementation
 from typing import TYPE_CHECKING
 
 from ..specifiers import InvalidSpecifier, VersionSpecifier, parse_version_specifier
@@ -84,37 +86,48 @@ class Implementation:
             )
 
 
+class EnvCompatibility(IntEnum):
+    INCOMPATIBLE = auto()
+    LOWER_OR_EQUAL = auto()
+    HIGHER = auto()
+
+
 @dataclass(frozen=True)
 class EnvSpec:
     requires_python: VersionSpecifier
-    platform: Platform
-    implementation: Implementation
+    platform: Platform | None = None
+    implementation: Implementation | None = None
 
     def as_dict(self) -> dict[str, str | bool]:
-        return {
-            "requires_python": str(self.requires_python),
-            "platform": str(self.platform),
-            "implementation": self.implementation.name,
-            "gil_disabled": self.implementation.gil_disabled,
-        }
+        result: dict[str, str | bool] = {"requires_python": str(self.requires_python)}
+        if self.platform is not None:
+            result["platform"] = str(self.platform)
+        if self.implementation is not None:
+            result["implementation"] = self.implementation.name
+            result["gil_disabled"] = self.implementation.gil_disabled
+        return result
 
     @classmethod
     def from_spec(
         cls,
         requires_python: str,
-        platform: str,
-        implementation: str = "cpython",
+        platform: str | None = None,
+        implementation: str | None = None,
         gil_disabled: bool = False,
     ) -> Self:
         return cls(
             _ensure_version_specifier(requires_python),
-            Platform.parse(platform),
-            Implementation.parse(implementation, gil_disabled=gil_disabled),
+            Platform.parse(platform) if platform else None,
+            Implementation.parse(implementation, gil_disabled=gil_disabled)
+            if implementation
+            else None,
         )
 
     @classmethod
     def current(cls) -> Self:
-        requires_python = _ensure_version_specifier(f"=={python_version()}")
+        # XXX: Strip pre-release and post-release tags
+        python_version = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+        requires_python = _ensure_version_specifier(f"=={python_version}")
         platform = Platform.current()
         implementation = Implementation.current()
         return cls(requires_python, platform, implementation)
@@ -122,8 +135,12 @@ class EnvSpec:
     def _evaluate_python(
         self, python_tag: str, abi_tag: str
     ) -> tuple[int, int, int] | None:
+        """Return a tuple of (major, minor, abi) if the wheel is compatible with the environment, or None otherwise."""
         impl, major, minor = python_tag[:2], python_tag[2], python_tag[3:]
-        if impl not in [self.implementation.short, "py"]:
+        if self.implementation is not None and impl not in [
+            self.implementation.short,
+            "py",
+        ]:
             return None
         abi_impl = (
             abi_tag.split("_", 1)[0]
@@ -152,6 +169,8 @@ class EnvSpec:
         return (int(major), int(minor or 0), 0 if abi_impl == "none" else 2)
 
     def _evaluate_platform(self, platform_tag: str) -> int | None:
+        if self.platform is None:
+            return -1
         platform_tags = [*self.platform.compatible_tags, "any"]
         if platform_tag not in platform_tags:
             return None
@@ -195,7 +214,37 @@ class EnvSpec:
         )
 
     def markers(self) -> dict[str, str]:
-        return {
-            "implementation_name": self.implementation.name,
-            **self.platform.markers(),
-        }
+        result = {}
+        if self.platform is not None:
+            result.update(self.platform.markers())
+        if self.implementation is not None:
+            result["implementation_name"] = self.implementation.name
+        return result
+
+    def compare(self, target: EnvSpec) -> EnvCompatibility:
+        if self == target:
+            return EnvCompatibility.LOWER_OR_EQUAL
+        if (self.requires_python & target.requires_python).is_empty():
+            return EnvCompatibility.INCOMPATIBLE
+        if (
+            self.implementation is not None
+            and target.implementation is not None
+            and self.implementation != target.implementation
+        ):
+            return EnvCompatibility.INCOMPATIBLE
+        if self.platform is None or target.platform is None:
+            return EnvCompatibility.LOWER_OR_EQUAL
+        if self.platform.arch != target.platform.arch:
+            return EnvCompatibility.INCOMPATIBLE
+        if type(self.platform.os) is not type(target.platform.os):
+            return EnvCompatibility.INCOMPATIBLE
+
+        if hasattr(self.platform.os, "major") and hasattr(self.platform.os, "minor"):
+            if (self.platform.os.major, self.platform.os.minor) <= (  # type: ignore[attr-defined]
+                target.platform.os.major,  # type: ignore[attr-defined]
+                target.platform.os.minor,  # type: ignore[attr-defined]
+            ):
+                return EnvCompatibility.LOWER_OR_EQUAL
+            else:
+                return EnvCompatibility.HIGHER
+        return EnvCompatibility.LOWER_OR_EQUAL
