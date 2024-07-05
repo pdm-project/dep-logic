@@ -4,6 +4,7 @@ import functools
 import itertools
 import operator
 
+from packaging.specifiers import InvalidSpecifier as PkgInvalidSpecifier
 from packaging.specifiers import Specifier, SpecifierSet
 from packaging.version import Version
 
@@ -109,7 +110,12 @@ def parse_version_specifier(spec: str) -> BaseSpecifier:
         return functools.reduce(
             operator.or_, map(parse_version_specifier, spec.split("||"))
         )
-    return from_specifierset(SpecifierSet(spec))
+    try:
+        pkg_spec = SpecifierSet(spec)
+    except PkgInvalidSpecifier as e:
+        raise InvalidSpecifier(str(e)) from e
+    else:
+        return from_specifierset(pkg_spec)
 
 
 __all__ = [
