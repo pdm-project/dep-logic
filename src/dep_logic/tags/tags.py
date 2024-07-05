@@ -98,6 +98,14 @@ class EnvSpec:
     platform: Platform | None = None
     implementation: Implementation | None = None
 
+    def __str__(self) -> str:
+        parts = [str(self.requires_python)]
+        if self.platform is not None:
+            parts.append(str(self.platform))
+        if self.implementation is not None:
+            parts.append(self.implementation.name)
+        return f"({', '.join(parts)})"
+
     def as_dict(self) -> dict[str, str | bool]:
         result: dict[str, str | bool] = {"requires_python": str(self.requires_python)}
         if self.platform is not None:
