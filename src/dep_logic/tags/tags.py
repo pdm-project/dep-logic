@@ -64,6 +64,15 @@ class Implementation:
         else:
             return "pt"
 
+    @property
+    def capitalized(self) -> str:
+        if self.name == "pypy":
+            return "PyPy"
+        elif self.name == "pyston":
+            return "Pyston"
+        else:
+            return "CPython"
+
     @classmethod
     def current(cls) -> Self:
         import sysconfig
@@ -226,7 +235,11 @@ class EnvSpec:
         if self.platform is not None:
             result.update(self.platform.markers())
         if self.implementation is not None:
-            result["implementation_name"] = self.implementation.name
+            result.update(
+                implementation_name=self.implementation.name,
+                platform_python_implementation=self.implementation.capitalized,
+            )
+
         return result
 
     def compare(self, target: EnvSpec) -> EnvCompatibility:
