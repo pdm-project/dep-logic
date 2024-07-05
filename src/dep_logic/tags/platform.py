@@ -89,7 +89,7 @@ class Platform:
         import platform
 
         system = platform.system()
-        arch = Arch.parse(platform.machine())
+        arch = Arch.parse(platform.machine().lower())
         if system == "Linux":
             libc_ver = platform.libc_ver()[1]
             if libc_ver:
