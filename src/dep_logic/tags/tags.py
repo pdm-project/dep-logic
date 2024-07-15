@@ -165,22 +165,25 @@ class EnvSpec:
             .replace("pyston", "pt")
             .lower()
         )
-        if impl == "cp" and abi_impl == "abi3":
-            if (
-                parse_version_specifier(f">={major}.{minor or 0}")
-                & self.requires_python
-            ).is_empty():
+        try:
+            if impl == "cp" and abi_impl == "abi3":
+                if (
+                    parse_version_specifier(f">={major}.{minor or 0}")
+                    & self.requires_python
+                ).is_empty():
+                    return None
+                return (int(major), int(minor or 0), 1)  # 1 for abi3
+            # cp36-cp36m-*
+            # cp312-cp312m-*
+            # pp310-pypy310_pp75-*
+            if abi_impl != "none" and not abi_impl.startswith(python_tag.lower()):
                 return None
-            return (int(major), int(minor or 0), 1)  # 1 for abi3
-        # cp36-cp36m-*
-        # cp312-cp312m-*
-        # pp310-pypy310_pp75-*
-        if abi_impl != "none" and not abi_impl.startswith(python_tag.lower()):
+            if major and minor:
+                wheel_range = parse_version_specifier(f"=={major}.{minor}.*")
+            else:
+                wheel_range = parse_version_specifier(f"=={major}.*")
+        except InvalidSpecifier:
             return None
-        if major and minor:
-            wheel_range = parse_version_specifier(f"=={major}.{minor}.*")
-        else:
-            wheel_range = parse_version_specifier(f"=={major}.*")
         if (wheel_range & self.requires_python).is_empty():
             return None
         return (int(major), int(minor or 0), 0 if abi_impl == "none" else 2)
