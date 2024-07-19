@@ -90,6 +90,11 @@ class Platform:
 
         system = platform.system()
         arch = Arch.parse(platform.machine().lower())
+        if (
+            platform.machine().lower() == "amd64"
+            and platform.architecture()[0] == "32bit"
+        ):
+            arch = Arch.parse("x86")
         if system == "Linux":
             libc_ver = platform.libc_ver()[1]
             if libc_ver:
@@ -108,7 +113,10 @@ class Platform:
             return cls(os.Windows(), arch)
         elif system == "Darwin":
             mac_ver = platform.mac_ver()[0].split(".")
-            return cls(os.Macos(int(mac_ver[0]), int(mac_ver[1])), arch)
+            major, minor = int(mac_ver[0]), int(mac_ver[1])
+            if major >= 11:
+                minor = 0
+            return cls(os.Macos(major, minor), arch)
         else:
             raise PlatformError("Unsupported platform")
 
