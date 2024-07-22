@@ -6,6 +6,8 @@ from enum import IntEnum, auto
 from platform import python_implementation
 from typing import TYPE_CHECKING
 
+from dep_logic.specifiers.range import RangeSpecifier
+
 from ..specifiers import InvalidSpecifier, VersionSpecifier, parse_version_specifier
 from .platform import Platform
 
@@ -235,6 +237,15 @@ class EnvSpec:
 
     def markers(self) -> dict[str, str]:
         result = {}
+        if (
+            isinstance(self.requires_python, RangeSpecifier)
+            and (version := self.requires_python.min) is not None
+            and version == self.requires_python.max
+        ):
+            result.update(
+                python_version=f"{version.major}.{version.minor}",
+                python_full_version=str(version),
+            )
         if self.platform is not None:
             result.update(self.platform.markers())
         if self.implementation is not None:
