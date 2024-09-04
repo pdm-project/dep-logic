@@ -297,6 +297,7 @@ class Arch(Enum):
     X86 = "x86"
     X86_64 = "x86_64"
     S390X = "s390x"
+    RISCV64 = "riscv64"
 
     def __str__(self) -> str:
         return self.value
@@ -308,6 +309,7 @@ class Arch(Enum):
             Arch.Powerpc64,
             Arch.Powerpc64Le,
             Arch.S390X,
+            Arch.RISCV64,
         ]:
             return 17
         elif self in [Arch.X86, Arch.X86_64]:
