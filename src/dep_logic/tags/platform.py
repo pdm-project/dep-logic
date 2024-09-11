@@ -35,7 +35,7 @@ class Platform:
         Available operating systems:
         - `linux`: an alias for `manylinux_2_17_x86_64`
         - `windows`: an alias for `win_amd64`
-        - `macos`: an alias for `macos_12_0_arm64`
+        - `macos`: an alias for `macos_14_0_arm64`
         - `alpine`: an alias for `musllinux_1_2_x86_64`
         - `windows_amd64`
         - `windows_x86`
@@ -54,7 +54,7 @@ class Platform:
         elif platform == "windows":
             return cls(os.Windows(), Arch.X86_64)
         elif platform == "macos":
-            return cls(os.Macos(12, 0), Arch.Aarch64)
+            return cls(os.Macos(14, 0), Arch.Aarch64)
         elif platform == "alpine":
             return cls(os.Musllinux(1, 2), Arch.X86_64)
         elif platform.startswith("windows_"):

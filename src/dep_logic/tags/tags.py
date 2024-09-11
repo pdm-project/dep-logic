@@ -167,8 +167,16 @@ class EnvSpec:
             .replace("pyston", "pt")
             .lower()
         )
+        allow_abi3 = impl == "cp" and (
+            self.implementation is None or not self.implementation.gil_disabled
+        )
+        free_threaded: bool | None = None
+        if self.implementation is not None:
+            free_threaded = self.implementation.gil_disabled
         try:
-            if impl == "cp" and abi_impl == "abi3":
+            if abi_impl == "abi3":
+                if not allow_abi3:
+                    return None
                 if (
                     parse_version_specifier(f">={major}.{minor or 0}")
                     & self.requires_python
@@ -178,8 +186,14 @@ class EnvSpec:
             # cp36-cp36m-*
             # cp312-cp312m-*
             # pp310-pypy310_pp75-*
-            if abi_impl != "none" and not abi_impl.startswith(python_tag.lower()):
-                return None
+            if abi_impl != "none":
+                if not abi_impl.startswith(python_tag.lower()):
+                    return None
+                if (
+                    free_threaded is not None
+                    and abi_impl.endswith("t") is not free_threaded
+                ):
+                    return None
             if major and minor:
                 wheel_range = parse_version_specifier(f"=={major}.{minor}.*")
             else:

@@ -6,6 +6,8 @@ from dep_logic.tags.tags import EnvCompatibility
 
 def test_check_wheel_tags():
     wheels = [
+        "protobuf-5.27.2-cp313-cp313t-macosx_14_0_arm64.whl",
+        "protobuf-5.27.2-cp313-cp313-macosx_14_0_arm64.whl",
         "protobuf-5.27.2-cp310-abi3-win32.whl",
         "protobuf-5.27.2-cp310-abi3-win_amd64.whl",
         "protobuf-5.27.2-cp310-cp310-macosx_12_0_arm64.whl",
@@ -52,8 +54,23 @@ def test_check_wheel_tags():
     }
     filtered_wheels = sorted(wheel_compats, key=wheel_compats.__getitem__, reverse=True)
     assert filtered_wheels == [
+        "protobuf-5.27.2-cp313-cp313-macosx_14_0_arm64.whl",
         "protobuf-5.27.2-cp310-cp310-macosx_12_0_arm64.whl",
         "protobuf-5.27.2-cp38-abi3-macosx_10_9_universal2.whl",
+        "protobuf-5.27.2-py3-none-any.whl",
+    ]
+
+    macos_free_threaded_env = EnvSpec.from_spec(">=3.9", "macos", "cpython", True)
+    wheel_compats = {
+        f: c
+        for f, c in {
+            f: macos_free_threaded_env.wheel_compatibility(f) for f in wheels
+        }.items()
+        if c is not None
+    }
+    filtered_wheels = sorted(wheel_compats, key=wheel_compats.__getitem__, reverse=True)
+    assert filtered_wheels == [
+        "protobuf-5.27.2-cp313-cp313t-macosx_14_0_arm64.whl",
         "protobuf-5.27.2-py3-none-any.whl",
     ]
 
@@ -65,6 +82,8 @@ def test_check_wheel_tags():
     }
     filtered_wheels = sorted(wheel_compats, key=wheel_compats.__getitem__, reverse=True)
     assert filtered_wheels == [
+        "protobuf-5.27.2-cp313-cp313t-macosx_14_0_arm64.whl",
+        "protobuf-5.27.2-cp313-cp313-macosx_14_0_arm64.whl",
         "protobuf-5.27.2-cp310-cp310-macosx_12_0_arm64.whl",
         "protobuf-5.27.2-cp310-abi3-win32.whl",
         "protobuf-5.27.2-cp310-abi3-win_amd64.whl",
