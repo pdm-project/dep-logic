@@ -72,9 +72,11 @@ class Platform:
             else:  # os_name == "musllinux"
                 return cls(os.Musllinux(int(major), int(minor)), Arch.parse(arch))
         else:
-            raise PlatformError(
-                f"Unsupported platform {platform}, expected one of {cls.choices()}"
-            )
+            os_, arch = platform.split("_", 1)
+            try:
+                return cls(os.Generic(os_), Arch.parse(arch))
+            except ValueError as e:
+                raise PlatformError(f"Unsupported platform {platform}") from e
 
     def __str__(self) -> str:
         if isinstance(self.os, os.Windows) and self.arch == Arch.X86_64:
@@ -228,6 +230,8 @@ class Platform:
                     release = f"{major_ver - 3}_{other}"
                     arch = f"{arch}_64bit"
                     platform_tags.append(f"solaris_{release}_{arch}")
+        elif isinstance(os_, os.Generic):
+            platform_tags.append(f"{os_}_{arch}")
         else:
             raise PlatformError(
                 f"Unsupported operating system and architecture combination: {os_} {arch}"

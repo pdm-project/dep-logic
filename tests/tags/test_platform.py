@@ -342,6 +342,11 @@ def test_platform_tags_musl():
             Platform(os.Macos(12, 0), Arch.X86_64),
             "macos_12_0_x86_64",
         ),
+        (
+            "mingw_x86_64",
+            Platform(os.Generic("mingw"), Arch.X86_64),
+            "mingw_x86_64",
+        ),
     ],
 )
 def test_parse_platform(text, expected, normalized):

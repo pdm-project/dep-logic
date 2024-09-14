@@ -82,3 +82,11 @@ class Haiku(Os):
 
     def __str__(self) -> str:
         return f"haiku_{self.release}"
+
+
+@dataclass(frozen=True)
+class Generic(Os):
+    name: str
+
+    def __str__(self) -> str:
+        return self.name.lower()
