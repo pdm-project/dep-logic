@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import re
+import struct
 import sys
 from dataclasses import dataclass
 from enum import Enum
@@ -21,6 +22,15 @@ class PlatformError(Exception):
 _platform_major_minor_re = re.compile(
     r"(?P<os>manylinux|macos|musllinux)_(?P<major>\d+?)_(?P<minor>\d+?)_(?P<arch>[a-z0-9_]+)$"
 )
+
+_os_mapping = {
+    "freebsd": os.FreeBsd,
+    "netbsd": os.NetBsd,
+    "openbsd": os.OpenBsd,
+    "dragonfly": os.Dragonfly,
+    "illumos": os.Illumos,
+    "haiku": os.Haiku,
+}
 
 
 @dataclass(frozen=True)
@@ -73,6 +83,9 @@ class Platform:
                 return cls(os.Musllinux(int(major), int(minor)), Arch.parse(arch))
         else:
             os_, arch = platform.split("_", 1)
+            if os_ in _os_mapping:
+                release, _, arch = arch.partition("_")
+                return cls(_os_mapping[os_](release), Arch.parse(arch))
             try:
                 return cls(os.Generic(os_), Arch.parse(arch))
             except ValueError as e:
@@ -89,38 +102,61 @@ class Platform:
     def current(cls) -> Self:
         """Return the current platform."""
         import platform
+        import sysconfig
 
-        system = platform.system()
-        arch = Arch.parse(platform.machine().lower())
-        if (
-            platform.machine().lower() == "amd64"
-            and platform.architecture()[0] == "32bit"
-        ):
-            arch = Arch.parse("x86")
-        if system == "Linux":
-            libc_ver = platform.libc_ver()[1]
-            if libc_ver:
-                parts = libc_ver.split(".")
-                return cls(os.Manylinux(int(parts[0]), int(parts[1])), arch)
-            else:  # musl
-                from packaging._musllinux import _get_musl_version
-
-                musl_version = _get_musl_version(sys.executable)
-                if musl_version is None:
-                    raise PlatformError(
-                        "Failed to detect musl version or glibc version"
-                    )
-                return cls(os.Musllinux(musl_version.major, musl_version.minor), arch)
-        elif system == "Windows":
-            return cls(os.Windows(), arch)
-        elif system == "Darwin":
-            mac_ver = platform.mac_ver()[0].split(".")
-            major, minor = int(mac_ver[0]), int(mac_ver[1])
-            if major >= 11:
-                minor = 0
-            return cls(os.Macos(major, minor), arch)
+        platform_ = sysconfig.get_platform()
+        platform_info = platform_.split("-", 1)
+        if len(platform_info) == 1:
+            if platform_info[0] == "win32":
+                return cls(os.Windows(), Arch.X86)
+            else:
+                raise PlatformError(f"Unsupported platform {platform_}")
         else:
-            raise PlatformError("Unsupported platform")
+            [operating_system, version_arch] = platform_info
+        if "-" in version_arch:
+            # Ex: macosx-11.2-arm64
+            version, architecture = version_arch.rsplit("-", 1)
+        else:
+            # Ex: linux-x86_64
+            version = None
+            architecture = version_arch
+
+        if operating_system == "linux":
+            from packaging._manylinux import _get_glibc_version
+            from packaging._musllinux import _get_musl_version
+
+            musl_version = _get_musl_version(sys.executable)
+            glibc_version = _get_glibc_version()
+            if musl_version:
+                os_ = os.Musllinux(musl_version[0], musl_version[1])
+            elif glibc_version != (-1, -1):
+                os_ = os.Manylinux(glibc_version[0], glibc_version[1])
+            else:
+                raise PlatformError("Unsupported platform: libc not found")
+        elif operating_system == "win":
+            os_ = os.Windows()
+        elif operating_system == "macosx":
+            # Apparently, Mac OS is reporting i386 sometimes in sysconfig.get_platform even
+            # though that's not a thing anymore.
+            # https://github.com/astral-sh/uv/issues/2450
+            version, _, architecture = platform.mac_ver()
+
+            # https://github.com/pypa/packaging/blob/cc938f984bbbe43c5734b9656c9837ab3a28191f/src/packaging/tags.py#L356-L363
+            is_32bit = struct.calcsize("P") == 4
+            if is_32bit:
+                if architecture.startswith("ppc"):
+                    architecture = "ppc"
+                else:
+                    architecture = "i386"
+
+            version = version.split(".")
+            os_ = os.Macos(int(version[0]), int(version[1]))
+        elif operating_system in _os_mapping:
+            os_ = _os_mapping[operating_system](version)
+        else:
+            os_ = os.Generic(operating_system)
+
+        return cls(os_, Arch.parse(architecture))
 
     @classmethod
     def choices(cls) -> list[str]:
