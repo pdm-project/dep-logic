@@ -109,10 +109,11 @@ class Platform:
         if len(platform_info) == 1:
             if platform_info[0] == "win32":
                 return cls(os.Windows(), Arch.X86)
-            else:
-                raise PlatformError(f"Unsupported platform {platform_}")
+            operating_system, _, version_arch = (
+                platform_.replace(".", "_").replace(" ", "_").partition("_")
+            )
         else:
-            [operating_system, version_arch] = platform_info
+            operating_system, version_arch = platform_info
         if "-" in version_arch:
             # Ex: macosx-11.2-arm64
             version, architecture = version_arch.rsplit("-", 1)
