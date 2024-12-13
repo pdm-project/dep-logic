@@ -50,8 +50,8 @@ class Platform:
         - `windows_amd64`
         - `windows_x86`
         - `windows_arm64`
-        - `macos_arm64`: an alias for `macos_12_0_arm64`
-        - `macos_x86_64`: an alias for `macos_12_0_x86_64`
+        - `macos_arm64`: an alias for `macos_14_0_arm64`
+        - `macos_x86_64`: an alias for `macos_14_0_x86_64`
         - `macos_X_Y_arm64`
         - `macos_X_Y_x86_64`
         - `manylinux_X_Y_x86_64`
@@ -70,9 +70,9 @@ class Platform:
         elif platform.startswith("windows_"):
             return cls(os.Windows(), Arch.parse(platform.split("_", 1)[1]))
         elif platform == "macos_arm64":
-            return cls(os.Macos(12, 0), Arch.Aarch64)
+            return cls(os.Macos(14, 0), Arch.Aarch64)
         elif platform == "macos_x86_64":
-            return cls(os.Macos(12, 0), Arch.X86_64)
+            return cls(os.Macos(14, 0), Arch.X86_64)
         elif (m := _platform_major_minor_re.match(platform)) is not None:
             os_name, major, minor, arch = m.groups()
             if os_name == "manylinux":
@@ -130,10 +130,8 @@ class Platform:
             glibc_version = _get_glibc_version()
             if musl_version:
                 os_ = os.Musllinux(musl_version[0], musl_version[1])
-            elif glibc_version != (-1, -1):
-                os_ = os.Manylinux(glibc_version[0], glibc_version[1])
             else:
-                raise PlatformError("Unsupported platform: libc not found")
+                os_ = os.Manylinux(glibc_version[0], glibc_version[1])
         elif operating_system == "win":
             os_ = os.Windows()
         elif operating_system == "macosx":
