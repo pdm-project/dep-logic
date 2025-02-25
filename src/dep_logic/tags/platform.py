@@ -337,6 +337,7 @@ class Arch(Enum):
     X86_64 = "x86_64"
     S390X = "s390x"
     RISCV64 = "riscv64"
+    LoongArch64 = "loongarch64"
 
     def __str__(self) -> str:
         return self.value
