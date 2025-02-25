@@ -155,7 +155,7 @@ class EnvSpec:
         self, python_tag: str, abi_tag: str
     ) -> tuple[int, int, int] | None:
         """Return a tuple of (major, minor, abi) if the wheel is compatible with the environment, or None otherwise."""
-        impl, major, minor = python_tag[:2], python_tag[2], python_tag[3:]
+        impl, major, minor = python_tag[:2], python_tag[2:3], python_tag[3:]
         if self.implementation is not None and impl not in [
             self.implementation.short,
             "py",
