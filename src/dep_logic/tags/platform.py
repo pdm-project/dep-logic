@@ -7,7 +7,7 @@ import sys
 from dataclasses import dataclass
 from enum import Enum
 from functools import cached_property
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from . import os
 
@@ -106,24 +106,24 @@ class Platform:
 
         platform_ = sysconfig.get_platform()
         platform_info = platform_.split("-", 1)
-        architecture: Optional[str] = None
+        architecture: str | None = None
         if len(platform_info) == 1:
             if platform_info[0] == "win32":
                 return cls(os.Windows(), Arch.X86)
             operating_system, _, version_arch = (
                 platform_.replace(".", "_").replace(" ", "_").partition("_")
             )
-            if version_arch.startswith("x86_64"):
-                architecture = "x86_64"
         else:
             operating_system, version_arch = platform_info
         if "-" in version_arch:
             # Ex: macosx-11.2-arm64
             version, architecture = version_arch.rsplit("-", 1)
-        elif not architecture:
-            # Ex: linux-x86_64
+        else:
+            # Ex: linux-x86_64 or x86_64_msvcrt_gnu
             version = None
             architecture = version_arch
+            if version_arch.startswith("x86_64"):
+                architecture = "x86_64"
 
         if operating_system == "linux":
             from packaging._manylinux import _get_glibc_version
