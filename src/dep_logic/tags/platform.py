@@ -106,7 +106,6 @@ class Platform:
 
         platform_ = sysconfig.get_platform()
         platform_info = platform_.split("-", 1)
-        architecture: str | None = None
         if len(platform_info) == 1:
             if platform_info[0] == "win32":
                 return cls(os.Windows(), Arch.X86)
