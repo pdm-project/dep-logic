@@ -118,9 +118,11 @@ class Platform:
             # Ex: macosx-11.2-arm64
             version, architecture = version_arch.rsplit("-", 1)
         else:
-            # Ex: linux-x86_64
+            # Ex: linux-x86_64 or x86_64_msvcrt_gnu
             version = None
             architecture = version_arch
+            if version_arch.startswith("x86_64"):
+                architecture = "x86_64"
 
         if operating_system == "linux":
             from packaging._manylinux import _get_glibc_version
