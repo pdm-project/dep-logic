@@ -14,9 +14,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 'lts/*'
 
       - run: npx changelogithub
         continue-on-error: true
@@ -40,7 +40,7 @@ jobs:
     needs: build
     environment:
       name: pypi
-      url: https://pypi.org/p/pkg-logical
+      url: https://pypi.org/project/dep-logic
     permissions:
       id-token: write
     steps:
