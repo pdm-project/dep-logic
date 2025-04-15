@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import Iterator
 
 from dep_logic.markers.any import AnyMarker
-from dep_logic.markers.base import BaseMarker
+from dep_logic.markers.base import BaseMarker, EvaluationContext
 from dep_logic.markers.empty import EmptyMarker
 from dep_logic.markers.single import MarkerExpression, SingleMarker
 from dep_logic.utils import DATACLASS_ARGS, flatten_items, intersection, union
@@ -135,8 +135,12 @@ class MultiMarker(BaseMarker):
 
         return None
 
-    def evaluate(self, environment: dict[str, str] | None = None) -> bool:
-        return all(m.evaluate(environment) for m in self.markers)
+    def evaluate(
+        self,
+        environment: dict[str, str | set[str]] | None = None,
+        context: EvaluationContext = "metadata",
+    ) -> bool:
+        return all(m.evaluate(environment, context) for m in self.markers)
 
     def without_extras(self) -> BaseMarker:
         return self.exclude("extra")
