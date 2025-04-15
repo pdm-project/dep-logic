@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dep_logic.markers.base import BaseMarker
+from dep_logic.markers.base import BaseMarker, EvaluationContext
 
 
 class EmptyMarker(BaseMarker):
@@ -17,7 +17,11 @@ class EmptyMarker(BaseMarker):
     def is_empty(self) -> bool:
         return True
 
-    def evaluate(self, environment: dict[str, str] | None = None) -> bool:
+    def evaluate(
+        self,
+        environment: dict[str, str | set[str]] | None = None,
+        context: EvaluationContext = "metadata",
+    ) -> bool:
         return False
 
     def without_extras(self) -> BaseMarker:

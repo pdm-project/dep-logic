@@ -1,24 +1,44 @@
 from __future__ import annotations
 
 import functools
+import operator
 import typing as t
+from abc import abstractmethod
 from dataclasses import dataclass, field, replace
 
-from packaging.markers import Marker as _Marker
+from packaging.markers import default_environment
+from packaging.specifiers import InvalidSpecifier, Specifier
+from packaging.version import InvalidVersion
 
 from dep_logic.markers.any import AnyMarker
-from dep_logic.markers.base import BaseMarker
+from dep_logic.markers.base import BaseMarker, EvaluationContext
 from dep_logic.markers.empty import EmptyMarker
 from dep_logic.specifiers import BaseSpecifier
 from dep_logic.specifiers.base import VersionSpecifier
 from dep_logic.specifiers.generic import GenericSpecifier
-from dep_logic.utils import DATACLASS_ARGS, OrderedSet, get_reflect_op
+from dep_logic.utils import DATACLASS_ARGS, OrderedSet, get_reflect_op, normalize_name
 
 if t.TYPE_CHECKING:
     from dep_logic.markers.multi import MultiMarker
     from dep_logic.markers.union import MarkerUnion
 
 PYTHON_VERSION_MARKERS = {"python_version", "python_full_version"}
+MARKERS_ALLOWING_SET = {"extras", "dependency_groups"}
+Operator = t.Callable[[str, t.Union[str, t.Set[str]]], bool]
+_operators: dict[str, Operator] = {
+    "in": lambda lhs, rhs: lhs in rhs,
+    "not in": lambda lhs, rhs: lhs not in rhs,
+    "<": operator.lt,
+    "<=": operator.le,
+    "==": operator.eq,
+    "!=": operator.ne,
+    ">=": operator.ge,
+    ">": operator.gt,
+}
+
+
+class UndefinedComparison(ValueError):
+    pass
 
 
 class SingleMarker(BaseMarker):
@@ -44,16 +64,25 @@ class SingleMarker(BaseMarker):
 
         return self
 
-    def evaluate(self, environment: dict[str, str] | None = None) -> bool:
-        pkg_marker = _Marker(str(self))
-        if self.name != "extra" or not environment or "extra" not in environment:
-            return pkg_marker.evaluate(environment)
-        extras = [extra] if isinstance(extra := environment["extra"], str) else extra
-        assert isinstance(self, MarkerExpression)
-        is_negated = self.op in ("not in", "!=")
-        if is_negated:
-            return all(pkg_marker.evaluate({"extra": extra}) for extra in extras)
-        return any(pkg_marker.evaluate({"extra": extra}) for extra in extras)
+    def evaluate(
+        self,
+        environment: dict[str, str | set[str]] | None = None,
+        context: EvaluationContext = "metadata",
+    ) -> bool:
+        current_environment = t.cast("dict[str, str|set[str]]", default_environment())
+        if context == "metadata":
+            current_environment["extra"] = ""
+        elif context == "lock_file":
+            current_environment.update(extras=set(), dependency_groups=set())
+        if environment:
+            current_environment.update(environment)
+        if "extra" in current_environment and current_environment["extra"] is None:
+            current_environment["extra"] = ""
+        return self._evaluate(current_environment)
+
+    @abstractmethod
+    def _evaluate(self, environment: dict[str, str | set[str]]) -> bool:
+        raise NotImplementedError
 
 
 @dataclass(unsafe_hash=True, **DATACLASS_ARGS)
@@ -141,6 +170,46 @@ class MarkerExpression(SingleMarker):
 
         return MarkerUnion(self, other)
 
+    def _evaluate(self, environment: dict[str, str | set[str]]) -> bool:
+        if self.name == "extra":
+            # Support batch comparison for "extra" markers
+            extra = environment["extra"]
+            if isinstance(extra, str):
+                extra = {extra}
+            assert self.op in ("==", "!=")
+            value = normalize_name(self.value)
+            extra = {normalize_name(v) for v in extra}
+            return value in extra if self.op == "==" else value not in extra
+
+        target = environment[self.name]
+        if self.reversed:
+            lhs, rhs = self.value, target
+            oper = _operators.get(get_reflect_op(self.op))
+        else:
+            lhs, rhs = target, self.value
+            assert isinstance(lhs, str)
+            oper = _operators.get(self.op)
+        if self.name in MARKERS_ALLOWING_SET:
+            lhs = normalize_name(lhs)
+            if isinstance(rhs, set):
+                rhs = {normalize_name(v) for v in rhs}
+            else:
+                rhs = normalize_name(rhs)
+        if isinstance(rhs, str):
+            try:
+                spec = Specifier(f"{self.op}{rhs}")
+            except InvalidSpecifier:
+                pass
+            else:
+                try:
+                    return spec.contains(lhs)
+                except InvalidVersion:
+                    pass
+
+        if oper is None:
+            raise UndefinedComparison(f"Undefined comparison {self}")
+        return oper(lhs, rhs)
+
 
 @dataclass(frozen=True, unsafe_hash=True, **DATACLASS_ARGS)
 class EqualityMarkerUnion(SingleMarker):
@@ -209,6 +278,9 @@ class EqualityMarkerUnion(SingleMarker):
 
     __rand__ = __and__
     __ror__ = __or__
+
+    def _evaluate(self, environment: dict[str, str | set[str]]) -> bool:
+        return environment[self.name] in self.values
 
 
 @dataclass(frozen=True, unsafe_hash=True, **DATACLASS_ARGS)
@@ -282,6 +354,9 @@ class InequalityMultiMarker(SingleMarker):
 
     __rand__ = __and__
     __ror__ = __or__
+
+    def _evaluate(self, environment: dict[str, str | set[str]]) -> bool:
+        return environment[self.name] not in self.values
 
 
 @functools.lru_cache(maxsize=None)
@@ -375,5 +450,5 @@ def _normalize_python_version_specifier(marker: MarkerExpression) -> BaseSpecifi
         splitted[-1] = str(int(splitted[-1]) + 1)
         op = "<"
 
-    spec = parse_version_specifier(f'{op}{".".join(splitted)}')
+    spec = parse_version_specifier(f"{op}{'.'.join(splitted)}")
     return spec

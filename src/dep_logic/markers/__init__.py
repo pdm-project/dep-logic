@@ -31,15 +31,15 @@ if TYPE_CHECKING:
 
 
 __all__ = [
-    "parse_marker",
-    "from_pkg_marker",
-    "InvalidMarker",
-    "BaseMarker",
     "AnyMarker",
+    "BaseMarker",
     "EmptyMarker",
+    "InvalidMarker",
     "MarkerExpression",
     "MarkerUnion",
     "MultiMarker",
+    "from_pkg_marker",
+    "parse_marker",
 ]
 
 
@@ -99,3 +99,34 @@ def _build_markers(markers: _ParsedMarkers) -> BaseMarker:
         else:
             or_groups[-1] &= _build_markers(item)
     return MarkerUnion.of(*or_groups)
+
+
+def _patch_marker_parser() -> None:
+    import re
+
+    try:
+        from packaging._tokenizer import DEFAULT_RULES
+    except (ModuleNotFoundError, AttributeError):
+        return
+
+    DEFAULT_RULES["VARIABLE"] = re.compile(
+        r"""
+            \b(
+                python_version
+                |python_full_version
+                |os[._]name
+                |sys[._]platform
+                |platform_(release|system)
+                |platform[._](version|machine|python_implementation)
+                |python_implementation
+                |implementation_(name|version)
+                |extras?
+                |dependency_groups
+            )\b
+        """,
+        re.VERBOSE,
+    )
+
+
+_patch_marker_parser()
+del _patch_marker_parser

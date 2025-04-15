@@ -191,3 +191,7 @@ class OrderedSet(AbstractSet[T]):
 
     def peek(self) -> T:
         return self._data[0]
+
+
+def normalize_name(name: str) -> str:
+    return re.sub(r"[-_.]+", "-", name).lower()

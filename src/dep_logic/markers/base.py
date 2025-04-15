@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
-from typing import Any
+from typing import Any, Literal
+
+EvaluationContext = Literal["lock_file", "metadata", "requirement"]
 
 
 class BaseMarker(metaclass=ABCMeta):
@@ -28,7 +30,11 @@ class BaseMarker(metaclass=ABCMeta):
         return False
 
     @abstractmethod
-    def evaluate(self, environment: dict[str, str] | None = None) -> bool:
+    def evaluate(
+        self,
+        environment: dict[str, str | set[str]] | None = None,
+        context: EvaluationContext = "metadata",
+    ) -> bool:
         raise NotImplementedError
 
     @abstractmethod
