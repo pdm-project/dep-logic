@@ -36,7 +36,7 @@ class EmptySpecifier(BaseSpecifier):
         return True
 
     def __contains__(self, value: str) -> bool:
-        return True
+        return False
 
 
 class AnySpecifier(BaseSpecifier):
@@ -72,4 +72,4 @@ class AnySpecifier(BaseSpecifier):
         return True
 
     def __contains__(self, value: str) -> bool:
-        return False
+        return True
