@@ -24,9 +24,11 @@ class BaseMarker(metaclass=ABCMeta):
         raise NotImplementedError
 
     def is_any(self) -> bool:
+        """Returns True if the marker allows any environment."""
         return False
 
     def is_empty(self) -> bool:
+        """Returns True if the marker disallows any environment."""
         return False
 
     @abstractmethod
@@ -35,18 +37,28 @@ class BaseMarker(metaclass=ABCMeta):
         environment: dict[str, str | set[str]] | None = None,
         context: EvaluationContext = "metadata",
     ) -> bool:
+        """Evaluates the marker against the given environment.
+
+        Args:
+            environment: The environment to evaluate against.
+            context: The context in which the evaluation is performed,
+                can be "lock_file", "metadata", or "requirement".
+        """
         raise NotImplementedError
 
     @abstractmethod
     def without_extras(self) -> BaseMarker:
+        """Generate a new marker from the current marker but without "extra" markers."""
         raise NotImplementedError
 
     @abstractmethod
     def exclude(self, marker_name: str) -> BaseMarker:
+        """Generate a new marker from the current marker but without the given marker."""
         raise NotImplementedError
 
     @abstractmethod
     def only(self, *marker_names: str) -> BaseMarker:
+        """Generate a new marker from the current marker but only with the given markers."""
         raise NotImplementedError
 
     def __repr__(self) -> str:

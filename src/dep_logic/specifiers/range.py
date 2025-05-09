@@ -81,7 +81,7 @@ class RangeSpecifier(VersionSpecifier):
         simplified = self._simplified_form
         if simplified is not None:
             return simplified
-        return f'{">=" if self.include_min else ">"}{self.min},{"<=" if self.include_max else "<"}{self.max}'
+        return f"{'>=' if self.include_min else '>'}{self.min},{'<=' if self.include_max else '<'}{self.max}"
 
     def contains(
         self, version: UnparsedVersion, prereleases: bool | None = None
@@ -115,11 +115,8 @@ class RangeSpecifier(VersionSpecifier):
         if self.min is None:
             return True
 
-        return (
-            self.min < other.min
-            or self.min == other.min
-            and self.include_min
-            and not other.include_min
+        return self.min < other.min or (
+            self.min == other.min and self.include_min and not other.include_min
         )
 
     def allows_higher(self, other: RangeSpecifier) -> bool:
@@ -128,11 +125,8 @@ class RangeSpecifier(VersionSpecifier):
         if self.max is None:
             return True
 
-        return (
-            self.max > other.max
-            or self.max == other.max
-            and self.include_max
-            and not other.include_max
+        return self.max > other.max or (
+            self.max == other.max and self.include_max and not other.include_max
         )
 
     def is_strictly_lower(self, other: RangeSpecifier) -> bool:
@@ -142,10 +136,8 @@ class RangeSpecifier(VersionSpecifier):
         if self.max is None or other.min is None:
             return False
 
-        return (
-            self.max < other.min
-            or self.max == other.min
-            and False in (self.include_max, other.include_min)
+        return self.max < other.min or (
+            self.max == other.min and False in (self.include_max, other.include_min)
         )
 
     def is_adjacent_to(self, other: RangeSpecifier) -> bool:
@@ -162,22 +154,24 @@ class RangeSpecifier(VersionSpecifier):
         return self.allows_lower(other)
 
     def is_superset(self, other: RangeSpecifier) -> bool:
-        min_lower = (
-            self.min is None
-            or other.min is not None
+        min_lower = self.min is None or (
+            other.min is not None
             and (
                 self.min < other.min
-                or self.min == other.min
-                and not (not self.include_min and other.include_min)
+                or (
+                    self.min == other.min
+                    and not (not self.include_min and other.include_min)
+                )
             )
         )
-        max_higher = (
-            self.max is None
-            or other.max is not None
+        max_higher = self.max is None or (
+            other.max is not None
             and (
                 self.max > other.max
-                or self.max == other.max
-                and not (not self.include_max and other.include_max)
+                or (
+                    self.max == other.max
+                    and not (not self.include_max and other.include_max)
+                )
             )
         )
         return min_lower and max_higher
