@@ -321,7 +321,7 @@ def test_platform_tags_musl():
 @pytest.mark.parametrize(
     "text,expected,normalized",
     [
-        ("linux", Platform(os.Manylinux(2, 17), Arch.X86_64), "manylinux_2_17_x86_64"),
+        ("linux", Platform(os.Manylinux(2, 40), Arch.X86_64), "manylinux_2_40_x86_64"),
         ("macos", Platform(os.Macos(14, 0), Arch.Aarch64), "macos_14_0_arm64"),
         ("windows", Platform(os.Windows(), Arch.X86_64), "windows_amd64"),
         ("alpine", Platform(os.Musllinux(1, 2), Arch.X86_64), "musllinux_1_2_x86_64"),

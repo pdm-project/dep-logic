@@ -60,7 +60,7 @@ class Platform:
         - `musllinux_X_Y_aarch64`
         """
         if platform == "linux":
-            return cls(os.Manylinux(2, 17), Arch.X86_64)
+            return cls(os.Manylinux(2, 40), Arch.X86_64)
         elif platform == "windows":
             return cls(os.Windows(), Arch.X86_64)
         elif platform == "macos":
