@@ -8,7 +8,7 @@ from dataclasses import dataclass, field, replace
 
 from packaging.markers import default_environment
 from packaging.specifiers import InvalidSpecifier, Specifier
-from packaging.version import InvalidVersion
+from packaging.version import InvalidVersion, Version
 
 from dep_logic.markers.any import AnyMarker
 from dep_logic.markers.base import BaseMarker, EvaluationContext
@@ -202,7 +202,7 @@ class MarkerExpression(SingleMarker):
                 pass
             else:
                 try:
-                    return spec.contains(lhs)
+                    return spec.contains(Version(lhs))
                 except InvalidVersion:
                     pass
 

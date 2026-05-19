@@ -86,6 +86,8 @@ class RangeSpecifier(VersionSpecifier):
     def contains(
         self, version: UnparsedVersion, prereleases: bool | None = None
     ) -> bool:
+        if not isinstance(version, Version):
+            version = Version(version)
         return self.to_specifierset().contains(version, prereleases)
 
     def __invert__(self) -> BaseSpecifier:
