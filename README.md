@@ -13,7 +13,7 @@ Python dependency specifications supporting logical operations
 pip install dep-logic
 ```
 
-This library requires Python 3.8 or later.
+This library requires Python 3.9 or later.
 
 Currently, it contains two sub-modules:
 

@@ -7,7 +7,7 @@ authors = [
 dependencies = [
     "packaging>=22",
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 readme = "README.md"
 license = {text = "Apache-2.0"}
 dynamic = ["version"]
@@ -16,7 +16,6 @@ keywords = ["dependency", "specification", "logic", "packaging"]
 classifiers = [
     "Intended Audience :: Developers",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",

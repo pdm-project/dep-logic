@@ -4,8 +4,11 @@
 [metadata]
 groups = ["default", "dev"]
 strategy = ["cross_platform", "inherit_metadata"]
-lock_version = "4.4.2"
-content_hash = "sha256:7fcb03ae06fee244b9af7cf9efb8e986ad48b8608e7a918f6ca9783f48470b23"
+lock_version = "4.5.0"
+content_hash = "sha256:e8e84e62db6c07f57769e416d7aa19fd4f3e00a46de828be940adbfb3778a3a3"
+
+[[metadata.targets]]
+requires_python = ">=3.9"
 
 [[package]]
 name = "colorama"
