@@ -9,12 +9,12 @@ from .tags import (
 )
 
 __all__ = [
+    "EnvCompatibility",
+    "EnvSpec",
+    "Implementation",
+    "InvalidWheelFilename",
     "Platform",
     "PlatformError",
     "TagsError",
     "UnsupportedImplementation",
-    "InvalidWheelFilename",
-    "EnvSpec",
-    "Implementation",
-    "EnvCompatibility",
 ]

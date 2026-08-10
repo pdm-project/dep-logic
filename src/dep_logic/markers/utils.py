@@ -2,14 +2,16 @@ from __future__ import annotations
 
 import functools
 import itertools
-from typing import AbstractSet, Iterable, Iterator, TypeVar
+from collections.abc import Iterable, Iterator
+from collections.abc import Set as AbstractSet
+from typing import TypeVar
 
 from dep_logic.markers.base import BaseMarker
 
 T = TypeVar("T")
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def cnf(marker: BaseMarker) -> BaseMarker:
     from dep_logic.markers.multi import MultiMarker
     from dep_logic.markers.union import MarkerUnion
@@ -30,7 +32,7 @@ def cnf(marker: BaseMarker) -> BaseMarker:
     return marker
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def dnf(marker: BaseMarker) -> BaseMarker:
     """Transforms the marker into DNF (disjunctive normal form)."""
     from dep_logic.markers.multi import MultiMarker

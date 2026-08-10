@@ -10,10 +10,10 @@ from packaging.specifiers import SpecifierSet
 from dep_logic.specifiers.base import BaseSpecifier, UnparsedVersion, VersionSpecifier
 from dep_logic.specifiers.range import RangeSpecifier
 from dep_logic.specifiers.special import EmptySpecifier
-from dep_logic.utils import DATACLASS_ARGS, first_different_index, pad_zeros
+from dep_logic.utils import first_different_index, pad_zeros
 
 
-@dataclass(frozen=True, unsafe_hash=True, **DATACLASS_ARGS)
+@dataclass(frozen=True, unsafe_hash=True, slots=True, repr=False)
 class UnionSpecifier(VersionSpecifier):
     ranges: tuple[RangeSpecifier, ...]
     simplified: str | None = field(default=None, compare=False, hash=False)
@@ -31,23 +31,32 @@ class UnionSpecifier(VersionSpecifier):
     def _simplified_form(self) -> str | None:
         if self.simplified is not None:
             return self.simplified
+
         # try to get a not-equals form(!=) if possible
         left, right, *rest = self.ranges
         if rest:
             return None
-        if (
-            left.min is None
-            and right.max is None
-            and left.max == right.min
-            and left.max is not None
-        ):
-            # (-inf, version) | (version, inf) => != version
-            return f"!={left.max}"
+
+        def with_outer_bounds(exclusion: str) -> str:
+            parts: list[str] = []
+            if left.min is not None:
+                parts.append(f"{'>=' if left.include_min else '>'}{left.min}")
+            parts.append(exclusion)
+            if right.max is not None:
+                parts.append(f"{'<=' if right.include_max else '<'}{right.max}")
+            return ",".join(parts)
 
         if (
-            left.min is None
-            and right.max is None
+            left.max == right.min
+            and left.max is not None
             and not left.include_max
+            and not right.include_min
+        ):
+            # [lower, version) | (version, upper] => lower, != version, upper
+            return with_outer_bounds(f"!={left.max}")
+
+        if (
+            not left.include_max
             and right.include_min
             and left.max is not None
             and right.min is not None
@@ -72,7 +81,7 @@ class UnionSpecifier(VersionSpecifier):
             ):
                 epoch = "" if left.max.epoch == 0 else f"{left.max.epoch}!"
                 version = ".".join(map(str, left.max.release[:first_different])) + ".*"
-                return f"!={epoch}{version}"
+                return with_outer_bounds(f"!={epoch}{version}")
 
         return None
 

@@ -119,15 +119,15 @@ def parse_version_specifier(spec: str) -> BaseSpecifier:
 
 
 __all__ = [
-    "from_specifierset",
-    "parse_version_specifier",
-    "VersionSpecifier",
-    "EmptySpecifier",
     "AnySpecifier",
+    "ArbitrarySpecifier",
+    "BaseSpecifier",
+    "EmptySpecifier",
+    "GenericSpecifier",
+    "InvalidSpecifier",
     "RangeSpecifier",
     "UnionSpecifier",
-    "BaseSpecifier",
-    "GenericSpecifier",
-    "ArbitrarySpecifier",
-    "InvalidSpecifier",
+    "VersionSpecifier",
+    "from_specifierset",
+    "parse_version_specifier",
 ]

@@ -97,7 +97,6 @@ def test_range_compare_lower(a: str, b: str, expected: bool) -> None:
         (RangeSpecifier(min=Version("1.0")), ">1.0"),
         (RangeSpecifier(min=Version("1.0"), include_min=True), ">=1.0"),
         (RangeSpecifier(max=Version("1.0")), "<1.0"),
-        (RangeSpecifier(max=Version("1.0")), "<1.0"),
         (
             RangeSpecifier(
                 min=Version("1.0"),

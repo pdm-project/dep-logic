@@ -6,7 +6,7 @@ import typing as t
 from packaging.specifiers import SpecifierSet
 from packaging.version import Version
 
-UnparsedVersion = t.Union[Version, str]
+UnparsedVersion = Version | str
 
 
 class InvalidSpecifier(ValueError):
