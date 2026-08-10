@@ -7,10 +7,9 @@ from packaging.specifiers import SpecifierSet
 
 from dep_logic.specifiers.base import BaseSpecifier, UnparsedVersion, VersionSpecifier
 from dep_logic.specifiers.special import EmptySpecifier
-from dep_logic.utils import DATACLASS_ARGS
 
 
-@dataclass(frozen=True, unsafe_hash=True, **DATACLASS_ARGS)
+@dataclass(frozen=True, unsafe_hash=True, slots=True, repr=False)
 class ArbitrarySpecifier(VersionSpecifier):
     """`===<version_string>` specifier."""
 

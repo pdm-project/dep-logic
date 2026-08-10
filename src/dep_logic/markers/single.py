@@ -16,7 +16,7 @@ from dep_logic.markers.empty import EmptyMarker
 from dep_logic.specifiers import BaseSpecifier
 from dep_logic.specifiers.base import VersionSpecifier
 from dep_logic.specifiers.generic import GenericSpecifier
-from dep_logic.utils import DATACLASS_ARGS, OrderedSet, get_reflect_op, normalize_name
+from dep_logic.utils import OrderedSet, get_reflect_op, normalize_name
 
 if t.TYPE_CHECKING:
     from dep_logic.markers.multi import MultiMarker
@@ -24,7 +24,7 @@ if t.TYPE_CHECKING:
 
 PYTHON_VERSION_MARKERS = {"python_version", "python_full_version"}
 MARKERS_ALLOWING_SET = {"extras", "dependency_groups"}
-Operator = t.Callable[[str, t.Union[str, t.Set[str]]], bool]
+Operator = t.Callable[[str, str | set[str]], bool]
 _operators: dict[str, Operator] = {
     "in": lambda lhs, rhs: lhs in rhs,
     "not in": lambda lhs, rhs: lhs not in rhs,
@@ -85,7 +85,7 @@ class SingleMarker(BaseMarker):
         raise NotImplementedError
 
 
-@dataclass(unsafe_hash=True, **DATACLASS_ARGS)
+@dataclass(unsafe_hash=True, slots=True, repr=False)
 class MarkerExpression(SingleMarker):
     name: str
     op: str
@@ -108,7 +108,10 @@ class MarkerExpression(SingleMarker):
         if isinstance(specifier, VersionSpecifier):
             if not specifier.is_simple():
                 return None
-            pkg_spec = next(iter(specifier.to_specifierset()))
+            pkg_specs = specifier.to_specifierset()
+            if len(pkg_specs) != 1:
+                return None
+            pkg_spec = next(iter(pkg_specs))
             pkg_version = pkg_spec.version
             if (
                 dot_num := pkg_version.count(".")
@@ -211,7 +214,7 @@ class MarkerExpression(SingleMarker):
         return oper(lhs, rhs)
 
 
-@dataclass(frozen=True, unsafe_hash=True, **DATACLASS_ARGS)
+@dataclass(frozen=True, unsafe_hash=True, slots=True, repr=False)
 class EqualityMarkerUnion(SingleMarker):
     name: str
     values: OrderedSet[str]
@@ -283,7 +286,7 @@ class EqualityMarkerUnion(SingleMarker):
         return environment[self.name] in self.values
 
 
-@dataclass(frozen=True, unsafe_hash=True, **DATACLASS_ARGS)
+@dataclass(frozen=True, unsafe_hash=True, slots=True, repr=False)
 class InequalityMultiMarker(SingleMarker):
     name: str
     values: OrderedSet[str]
@@ -359,7 +362,7 @@ class InequalityMultiMarker(SingleMarker):
         return environment[self.name] not in self.values
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def _merge_single_markers(
     marker1: MarkerExpression,
     marker2: MarkerExpression,
@@ -376,9 +379,8 @@ def _merge_single_markers(
 
     # "extra" is special because it can have multiple values at the same time.
     # That's why we can only merge two "extra" markers if they have the same value.
-    if marker1.name == "extra":
-        if marker1.value != marker2.value:  # type: ignore[attr-defined]
-            return None
+    if marker1.name == "extra" and marker1.value != marker2.value:  # type: ignore[attr-defined]
+        return None
     try:
         if merge_class is MultiMarker:
             result_specifier = marker1.specifier & marker2.specifier

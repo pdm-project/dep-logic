@@ -354,8 +354,7 @@ def test_marker_union_intersect_marker_union_drops_unnecessary_markers() -> None
 
     intersection = m & m2
     expected = (
-        'python_version >= "2.7" and python_version < "2.8" '
-        'or python_version ~= "3.4"'
+        'python_version >= "2.7" and python_version < "2.8" or python_version ~= "3.4"'
     )
     assert str(intersection) == expected
 

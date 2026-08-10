@@ -3,31 +3,20 @@ from __future__ import annotations
 import functools
 import itertools
 import re
-import sys
-from typing import TYPE_CHECKING, AbstractSet, Iterable, Iterator, Protocol, TypeVar
+from collections.abc import Iterable, Iterator
+from collections.abc import Set as AbstractSet
+from typing import TYPE_CHECKING, Protocol, TypeVar
 
 _prefix_regex = re.compile(r"^([0-9]+)((?:a|b|c|rc)[0-9]+)$")
 
 if TYPE_CHECKING:
-    from typing import TypedDict
-
     from dep_logic.markers.base import BaseMarker
-
-    class _DataClassArgs(TypedDict, total=False):
-        slots: bool
-        repr: bool
-
-
-if sys.version_info >= (3, 10):
-    DATACLASS_ARGS: _DataClassArgs = {"slots": True, "repr": False}
-else:
-    DATACLASS_ARGS = {"repr": False}
 
 
 class Ident(Protocol):
     def __hash__(self) -> int: ...
 
-    def __eq__(self, __value: object) -> bool: ...
+    def __eq__(self, __value: object, /) -> bool: ...
 
 
 T = TypeVar("T", bound=Ident)
@@ -79,7 +68,7 @@ def pad_zeros(parts: list[int], to_length: int) -> list[int]:
     return parts + [0] * (to_length - len(parts))
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def cnf(marker: BaseMarker) -> BaseMarker:
     from dep_logic.markers.multi import MultiMarker
     from dep_logic.markers.union import MarkerUnion
@@ -100,7 +89,7 @@ def cnf(marker: BaseMarker) -> BaseMarker:
     return marker
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def dnf(marker: BaseMarker) -> BaseMarker:
     """Transforms the marker into DNF (disjunctive normal form)."""
     from dep_logic.markers.multi import MultiMarker

@@ -1,4 +1,5 @@
 import pytest
+from packaging.specifiers import SpecifierSet
 from packaging.version import Version
 
 from dep_logic.specifiers import (
@@ -39,6 +40,23 @@ def test_parse_simple_union_specifier(spec: str, parsed: UnionSpecifier) -> None
 
 
 @pytest.mark.parametrize(
+    "spec,expected",
+    [
+        (">=3,<4||>4", ">=3,!=4"),
+        (">=3,<4||>4,<5", ">=3,!=4,<5"),
+        ("<4||>4,<5", "!=4,<5"),
+        (">=1,<2.0||>=3.0", ">=1,!=2.*"),
+    ],
+)
+def test_simplify_union_with_outer_bounds(spec: str, expected: str) -> None:
+    value = parse_version_specifier(spec)
+    assert isinstance(value, UnionSpecifier)
+    assert value.is_simple()
+    assert str(value) == expected
+    assert value.to_specifierset() == SpecifierSet(expected)
+
+
+@pytest.mark.parametrize(
     "spec,parsed",
     [
         (
@@ -72,7 +90,7 @@ def test_parse_union_specifier(spec: str, parsed: UnionSpecifier) -> None:
 @pytest.mark.parametrize(
     "a,b,expected",
     [
-        ("!=2.0", ">=1.0", "~=1.0||>2.0"),
+        ("!=2.0", ">=1.0", ">=1.0,!=2.0"),
         ("!=2.0", ">=2.0", ">2.0"),
         ("~=2.7||>=3.6", "==3.3", "<empty>"),
         ("~=2.7||>=3.6", "<3.0", "~=2.7"),

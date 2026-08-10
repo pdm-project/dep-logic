@@ -1,17 +1,17 @@
 from __future__ import annotations
 
+from collections.abc import Iterator
 from dataclasses import dataclass
-from typing import Iterator
 
 from dep_logic.markers.any import AnyMarker
 from dep_logic.markers.base import BaseMarker, EvaluationContext
 from dep_logic.markers.empty import EmptyMarker
 from dep_logic.markers.multi import MultiMarker
 from dep_logic.markers.single import SingleMarker
-from dep_logic.utils import DATACLASS_ARGS, flatten_items, intersection, union
+from dep_logic.utils import flatten_items, intersection, union
 
 
-@dataclass(init=False, frozen=True, unsafe_hash=True, **DATACLASS_ARGS)
+@dataclass(init=False, frozen=True, unsafe_hash=True, slots=True, repr=False)
 class MarkerUnion(BaseMarker):
     markers: tuple[BaseMarker, ...]
 

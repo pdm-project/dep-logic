@@ -6,12 +6,11 @@ from dataclasses import dataclass
 
 from dep_logic.specifiers.base import BaseSpecifier, InvalidSpecifier
 from dep_logic.specifiers.special import AnySpecifier, EmptySpecifier
-from dep_logic.utils import DATACLASS_ARGS
 
 Operator = t.Callable[[str, str], bool]
 
 
-@dataclass(frozen=True, unsafe_hash=True, **DATACLASS_ARGS)
+@dataclass(frozen=True, unsafe_hash=True, slots=True, repr=False)
 class GenericSpecifier(BaseSpecifier):
     op: str
     value: str
@@ -86,11 +85,11 @@ class GenericSpecifier(BaseSpecifier):
             if this.value == that.value:
                 return AnySpecifier()
             return that
-        elif this.op == "!=" and that.op == "!=":
-            return AnySpecifier()
-        elif this.op == "in" and that.op == "not in" and this.value == that.value:
-            return AnySpecifier()
-        elif this.op == "!=" and that.op == "in" and this.value in that.value:
+        elif (
+            (this.op == "!=" and that.op == "!=")
+            or (this.op == "in" and that.op == "not in" and this.value == that.value)
+            or (this.op == "!=" and that.op == "in" and this.value in that.value)
+        ):
             return AnySpecifier()
         elif this.op == "!=" and that.op == "not in":
             if this.value in that.value:

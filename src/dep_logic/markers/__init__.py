@@ -20,14 +20,13 @@ from dep_logic.markers.union import MarkerUnion
 from dep_logic.utils import get_reflect_op
 
 if TYPE_CHECKING:
-    from typing import List, Literal, Tuple, Union
+    from collections.abc import Sequence
+    from typing import Literal
 
     from packaging.markers import Op, Value, Variable
 
-    _ParsedMarker = Tuple[Variable, Op, Value]
-    _ParsedMarkers = Union[
-        _ParsedMarker, List[Union["_ParsedMarkers", Literal["or", "and"]]]
-    ]
+    _ParsedMarker = tuple[Variable | Value, Op, Variable | Value]
+    _ParsedMarkers = _ParsedMarker | Sequence["_ParsedMarkers" | Literal["or", "and"]]
 
 
 __all__ = [
@@ -49,7 +48,7 @@ class InvalidMarker(ValueError):
     """
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def parse_marker(marker: str) -> BaseMarker:
     if marker == "<empty>":
         return EmptyMarker()
