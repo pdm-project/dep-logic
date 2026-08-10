@@ -267,7 +267,7 @@ class EqualityMarkerUnion(SingleMarker):
                 return replace(self, values=self.values | {other.value})
             if other.op == "!=":
                 if other.value in self.values:
-                    AnyMarker()
+                    return AnyMarker()
                 return other
             if all(v in other.specifier for v in self.values):
                 return other
