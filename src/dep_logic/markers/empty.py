@@ -4,6 +4,11 @@ from dep_logic.markers.base import BaseMarker, EvaluationContext
 
 
 class EmptyMarker(BaseMarker):
+    def __invert__(self) -> BaseMarker:
+        from dep_logic.markers.any import AnyMarker
+
+        return AnyMarker()
+
     def __and__(self, other: BaseMarker) -> BaseMarker:
         return self
 

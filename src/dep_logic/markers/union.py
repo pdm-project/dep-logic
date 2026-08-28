@@ -87,6 +87,9 @@ class MarkerUnion(BaseMarker):
     def __or__(self, other: BaseMarker) -> BaseMarker:
         return union(self, other)
 
+    def __invert__(self) -> BaseMarker:
+        return MultiMarker.of(*(~marker for marker in self.markers))
+
     __rand__ = __and__
     __ror__ = __or__
 
