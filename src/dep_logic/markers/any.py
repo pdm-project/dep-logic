@@ -57,4 +57,4 @@ class AnyMarker(BaseMarker):
         if not isinstance(other, BaseMarker):
             return NotImplemented
 
-        return isinstance(other, AnyMarker)
+        return other.is_any()

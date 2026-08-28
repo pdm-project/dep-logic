@@ -57,4 +57,4 @@ class EmptyMarker(BaseMarker):
         if not isinstance(other, BaseMarker):
             return NotImplemented
 
-        return isinstance(other, EmptyMarker)
+        return other.is_empty()
