@@ -88,6 +88,11 @@ class MultiMarker(BaseMarker):
     def __or__(self, other: BaseMarker) -> BaseMarker:
         return union(self, other)
 
+    def __invert__(self) -> BaseMarker:
+        from dep_logic.markers.union import MarkerUnion
+
+        return MarkerUnion.of(*(~marker for marker in self.markers))
+
     __rand__ = __and__
     __ror__ = __or__
 

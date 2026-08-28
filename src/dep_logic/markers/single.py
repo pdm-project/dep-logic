@@ -35,6 +35,16 @@ _operators: dict[str, Operator] = {
     ">=": operator.ge,
     ">": operator.gt,
 }
+_invert_ops = {
+    "==": "!=",
+    "!=": "==",
+    "not in": "in",
+    "in": "not in",
+    "<": ">=",
+    "<=": ">",
+    ">": "<=",
+    ">=": "<",
+}
 
 
 class UndefinedComparison(ValueError):
@@ -151,6 +161,11 @@ class MarkerExpression(SingleMarker):
             return f'"{self.value}" {get_reflect_op(self.op)} {self.name}'
         return f'{self.name} {self.op} "{self.value}"'
 
+    def __invert__(self) -> BaseMarker:
+        if inverted_op := _invert_ops.get(self.op):
+            return MarkerExpression(self.name, inverted_op, self.value, self.reversed)
+        return _marker_from_specifier(self.name, ~self.specifier, self.reversed)
+
     def __and__(self, other: t.Any) -> BaseMarker:
         from dep_logic.markers.multi import MultiMarker
 
@@ -221,6 +236,9 @@ class EqualityMarkerUnion(SingleMarker):
 
     def __str__(self) -> str:
         return " or ".join(f'{self.name} == "{value}"' for value in self.values)
+
+    def __invert__(self) -> BaseMarker:
+        return InequalityMultiMarker(self.name, self.values)
 
     def replace(self, values: OrderedSet[str]) -> BaseMarker:
         if not values:
@@ -294,6 +312,9 @@ class InequalityMultiMarker(SingleMarker):
     def __str__(self) -> str:
         return " and ".join(f'{self.name} != "{value}"' for value in self.values)
 
+    def __invert__(self) -> BaseMarker:
+        return EqualityMarkerUnion(self.name, self.values)
+
     def replace(self, values: OrderedSet[str]) -> BaseMarker:
         if not values:
             return AnyMarker()
@@ -360,6 +381,27 @@ class InequalityMultiMarker(SingleMarker):
 
     def _evaluate(self, environment: dict[str, str | set[str]]) -> bool:
         return environment[self.name] not in self.values
+
+
+def _marker_from_specifier(
+    name: str, specifier: BaseSpecifier, reversed: bool = False
+) -> BaseMarker:
+    from dep_logic.markers.union import MarkerUnion
+    from dep_logic.specifiers.union import UnionSpecifier
+
+    marker = MarkerExpression.from_specifier(name, specifier)
+    if marker is not None:
+        if reversed and isinstance(marker, MarkerExpression):
+            marker = replace(marker, reversed=True)
+        return marker
+
+    if not isinstance(specifier, UnionSpecifier):
+        raise TypeError(f"Cannot represent inverted marker for {name!r}")
+
+    markers = [
+        _marker_from_specifier(name, item, reversed) for item in specifier.ranges
+    ]
+    return MarkerUnion.of(*markers)
 
 
 @functools.cache

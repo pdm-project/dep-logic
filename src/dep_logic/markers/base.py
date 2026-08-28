@@ -23,6 +23,10 @@ class BaseMarker(metaclass=ABCMeta):
     def __or__(self, other: Any) -> BaseMarker:
         raise NotImplementedError
 
+    @abstractmethod
+    def __invert__(self) -> BaseMarker:
+        raise NotImplementedError
+
     def is_any(self) -> bool:
         """Returns True if the marker allows any environment."""
         return False
