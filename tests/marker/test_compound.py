@@ -51,8 +51,8 @@ def test_multi_marker_is_any() -> None:
     m1 = parse_marker('python_version != "3.6" or python_version == "3.6"')
     m2 = parse_marker('python_version != "3.7" or python_version == "3.7"')
 
-    assert m1 & m2.is_any()
-    assert m2 & m1.is_any()
+    assert (m1 & m2).is_any()
+    assert (m2 & m1).is_any()
 
 
 def test_equality_marker_union_with_complement_is_any() -> None:
