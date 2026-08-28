@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 from dataclasses import dataclass
+from typing import Any
 
 from dep_logic.markers.any import AnyMarker
 from dep_logic.markers.base import BaseMarker, EvaluationContext
@@ -81,10 +82,14 @@ class MarkerUnion(BaseMarker):
 
         return MarkerUnion(*new_markers)
 
-    def __and__(self, other: BaseMarker) -> BaseMarker:
+    def __and__(self, other: Any) -> BaseMarker:
+        if not isinstance(other, BaseMarker):
+            return NotImplemented
         return intersection(self, other)
 
-    def __or__(self, other: BaseMarker) -> BaseMarker:
+    def __or__(self, other: Any) -> BaseMarker:
+        if not isinstance(other, BaseMarker):
+            return NotImplemented
         return union(self, other)
 
     def __invert__(self) -> BaseMarker:

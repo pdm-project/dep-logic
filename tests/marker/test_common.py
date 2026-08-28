@@ -2,7 +2,45 @@ from __future__ import annotations
 
 import pytest
 
-from dep_logic.markers import parse_marker
+from dep_logic.markers import BaseMarker, parse_marker
+
+
+class ReflectedOperand:
+    def __rand__(self, other: object) -> str:
+        return "reflected and"
+
+    def __ror__(self, other: object) -> str:
+        return "reflected or"
+
+
+MARKERS = [
+    parse_marker(""),
+    parse_marker("<empty>"),
+    parse_marker('os_name == "posix" and sys_platform == "linux"'),
+    parse_marker('os_name == "posix" or sys_platform == "linux"'),
+]
+
+
+@pytest.mark.parametrize("marker", MARKERS)
+def test_binary_operators_return_not_implemented(marker: BaseMarker) -> None:
+    assert marker.__and__(object()) is NotImplemented
+    assert marker.__or__(object()) is NotImplemented
+
+
+@pytest.mark.parametrize("marker", MARKERS)
+def test_binary_operators_raise_type_error(marker: BaseMarker) -> None:
+    with pytest.raises(TypeError):
+        marker & object()
+    with pytest.raises(TypeError):
+        marker | object()
+
+
+@pytest.mark.parametrize("marker", MARKERS)
+def test_binary_operators_use_reflected_method(marker: BaseMarker) -> None:
+    operand = ReflectedOperand()
+
+    assert marker & operand == "reflected and"
+    assert marker | operand == "reflected or"
 
 
 @pytest.mark.parametrize(
