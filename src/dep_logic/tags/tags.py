@@ -167,15 +167,15 @@ class EnvSpec:
             .replace("pyston", "pt")
             .lower()
         )
-        allow_abi3 = impl == "cp" and (
-            self.implementation is None or not self.implementation.gil_disabled
-        )
+        allow_abi3_abi3t = impl == "cp"
         free_threaded: bool | None = None
         if self.implementation is not None:
             free_threaded = self.implementation.gil_disabled
         try:
-            if abi_impl == "abi3":
-                if not allow_abi3:
+            if abi_impl in ("abi3", "abi3t"):
+                if not allow_abi3_abi3t:
+                    return None
+                if free_threaded is not None and free_threaded != (abi_impl == "abi3t"):
                     return None
                 if (
                     parse_version_specifier(f">={major}.{minor or 0}")
