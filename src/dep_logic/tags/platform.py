@@ -92,6 +92,8 @@ class Platform:
                 raise PlatformError(f"Unsupported platform {platform}") from e
 
     def __str__(self) -> str:
+        if isinstance(self.os, os.OpenBsd):
+            return f"{self.os}_{self.os.release}_{self.arch}"
         if isinstance(self.os, os.Windows) and self.arch == Arch.X86_64:
             return "windows_amd64"
         if isinstance(self.os, (os.Macos, os.Windows)) and self.arch == Arch.Aarch64:

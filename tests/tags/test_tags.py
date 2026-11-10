@@ -1,3 +1,5 @@
+from typing import Any
+
 import pytest
 
 from dep_logic.tags import EnvSpec
@@ -160,3 +162,22 @@ def test_check_wheel_tags():
 )
 def test_env_spec_comparison(left, right, expected):
     assert left.compare(right) == expected
+
+
+@pytest.mark.parametrize("release,arch", [("7.6", "x86_64"), ("7.5", "aarch64")])
+def test_openbsd_env_spec_roundtrip(release, arch):
+    platform = f"openbsd_{release}_{arch}"
+    original = EnvSpec.from_spec(">=3.10", platform=platform, implementation="cpython")
+    assert original.platform is not None
+    assert original.platform.compatible_tags == [
+        f"openbsd_{release.replace('.', '_')}_{arch}"
+    ]
+
+    serialized: dict[str, Any] = original.as_dict()
+    assert serialized == {
+        "requires_python": ">=3.10",
+        "platform": platform,
+        "implementation": "cpython",
+        "gil_disabled": False,
+    }
+    assert EnvSpec.from_spec(**serialized) == original
