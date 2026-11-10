@@ -102,6 +102,11 @@ class MarkerExpression(SingleMarker):
     value: str
     reversed: bool = field(default=False, compare=False, hash=False)
     _specifier: BaseSpecifier | None = field(default=None, compare=False, hash=False)
+    _version_reversed: bool = field(init=False)
+
+    def __post_init__(self) -> None:
+        # Local-version matching is directional, including in cached operations.
+        self._version_reversed = self.name == "implementation_version" and self.reversed
 
     @property
     def specifier(self) -> BaseSpecifier:
@@ -220,7 +225,10 @@ class MarkerExpression(SingleMarker):
                 pass
             else:
                 try:
-                    return spec.contains(Version(lhs))
+                    prereleases = (
+                        True if self.name == "implementation_version" else None
+                    )
+                    return spec.contains(Version(lhs), prereleases=prereleases)
                 except InvalidVersion:
                     pass
 
@@ -422,6 +430,9 @@ def _merge_single_markers(
     # "extra" is special because it can have multiple values at the same time.
     # That's why we can only merge two "extra" markers if they have the same value.
     if marker1.name == "extra" and marker1.value != marker2.value:  # type: ignore[attr-defined]
+        return None
+    # String-based merging does not preserve PEP 440 implementation versions.
+    if marker1.name == "implementation_version":
         return None
     try:
         if merge_class is MultiMarker:
