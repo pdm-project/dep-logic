@@ -72,6 +72,7 @@ class RangeSpecifier(VersionSpecifier):
             if (
                 all(p == 0 for p in max_stable[first_different + 1 :])
                 and not self.max.is_prerelease
+                and not self.max.is_postrelease
                 and len(self.min.release) == first_different + 1
             ):
                 return f"~={self.min}"

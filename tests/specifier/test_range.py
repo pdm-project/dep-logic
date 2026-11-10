@@ -1,9 +1,31 @@
 from typing import cast
 
 import pytest
+from packaging.specifiers import SpecifierSet
 from packaging.version import Version
 
 from dep_logic.specifiers import RangeSpecifier, parse_version_specifier
+
+
+@pytest.mark.parametrize(
+    "expression,candidates",
+    [
+        (">=1.2,<2.0.post0", ["1.2", "1.9", "2.0", "2.0.post0"]),
+        (">=1.2,<2.0.post2", ["1.2", "2.0", "2.0.post1", "2.0.post2"]),
+        (">=1.2.3,<1.3.0.post1", ["1.2.3", "1.3.0", "1.3.0.post1"]),
+        (">=1!1.2,<1!2.0.post1", ["1!1.2", "1!2.0", "1!2.0.post1"]),
+        (">=1.2,<2.0", ["1.2", "1.9", "2.0.dev0", "2.0", "2.0.post1"]),
+    ],
+)
+def test_range_simplification_preserves_upper_bound(
+    expression: str, candidates: list[str]
+) -> None:
+    spec = cast(RangeSpecifier, parse_version_specifier(expression))
+    expected = SpecifierSet(expression)
+    for prereleases in (None, False, True):
+        assert [spec.contains(v, prereleases) for v in candidates] == [
+            expected.contains(v, prereleases) for v in candidates
+        ]
 
 
 @pytest.mark.parametrize(
@@ -133,7 +155,7 @@ def test_range_compare_lower(a: str, b: str, expected: bool) -> None:
                 max=Version("2.0post1"),
                 include_min=True,
             ),
-            "~=1.2",
+            ">=1.2,<2.0.post1",
         ),
         (
             RangeSpecifier(
